@@ -54,8 +54,32 @@
       </div>
     </div>
 
+    <!-- 点击商品后的操作选择 -->
+    <BottomSheet v-model="showProductActions" :title="selectedProduct?.name">
+      <button class="list-item" @click="openEditBatch">
+        <div class="list-item__icon" style="background: var(--color-pink-light); border-radius: var(--radius-full)">
+          <IconEdit :size="20" />
+        </div>
+        <div class="list-item__content">
+          <div class="list-item__title">本批信息更改</div>
+          <div class="list-item__subtitle">更改名称、售价、成本、数量、状态、分类</div>
+        </div>
+        <IconArrowRight class="list-item__arrow" />
+      </button>
+      <button class="list-item" @click="openNewBatch">
+        <div class="list-item__icon" style="background: var(--color-pink-light); border-radius: var(--radius-full)">
+          <IconAdd :size="20" />
+        </div>
+        <div class="list-item__content">
+          <div class="list-item__title">新批次录入</div>
+          <div class="list-item__subtitle">为同一商品追加入库，生成新批次</div>
+        </div>
+        <IconArrowRight class="list-item__arrow" />
+      </button>
+    </BottomSheet>
+
     <AddMenu v-model="showAddMenu" @new-product="openNewProduct" @new-category="openNewCategory" />
-    <ProductForm v-model="showProductForm" :product="editingProduct" @save="handleSave" />
+    <ProductForm v-model="showProductForm" :product="editingProduct" :mode="formMode" @save="handleSave" />
     <CategoryForm v-model="showCategoryForm" @save="handleCategorySave" />
 
     <!-- 分类筛选弹窗 -->
@@ -91,7 +115,7 @@ import ProductForm from '../components/warehouse/ProductForm.vue'
 import CategoryForm from '../components/warehouse/CategoryForm.vue'
 import EmptyState from '../components/shared/EmptyState.vue'
 import BottomSheet from '../components/shared/BottomSheet.vue'
-import { IconAdd, IconArrowRight, IconFolder, IconTag, IconCheck } from '../icons/index.js'
+import { IconAdd, IconArrowRight, IconFolder, IconTag, IconCheck, IconEdit } from '../icons/index.js'
 
 const BASE = import.meta.env.BASE_URL
 const img5 = `${BASE}images/5.jpg`
@@ -105,8 +129,11 @@ const showCategoryPicker = ref(false)
 const sortOptions = ref({ field: 'updatedAt', order: 'desc' })
 const showAddMenu = ref(false)
 const showProductForm = ref(false)
+const showProductActions = ref(false)
 const showCategoryForm = ref(false)
 const editingProduct = ref(null)
+const selectedProduct = ref(null)
+const formMode = ref('edit') // 'edit' | 'new-batch'
 
 onMounted(async () => {
   await store.init()
@@ -146,7 +173,21 @@ function openNewProduct() {
 }
 
 function openEdit(product) {
-  editingProduct.value = { ...product }
+  selectedProduct.value = product
+  showProductActions.value = true
+}
+
+function openEditBatch() {
+  editingProduct.value = { ...selectedProduct.value }
+  formMode.value = 'edit'
+  showProductActions.value = false
+  showProductForm.value = true
+}
+
+function openNewBatch() {
+  editingProduct.value = { ...selectedProduct.value }
+  formMode.value = 'new-batch'
+  showProductActions.value = false
   showProductForm.value = true
 }
 
@@ -157,18 +198,29 @@ function openNewCategory() {
 
 async function handleSave(formData) {
   if (editingProduct.value?.id) {
+    // 先更新产品基本信息
     await store.updateProduct(editingProduct.value.id, formData)
-    // 如果编辑时填写了数量和成本，追加入库批次
+
     const qty = Number(formData.quantity)
     const cost = Number(formData.unitCost)
-    if (qty > 0 && cost >= 0) {
-      await store.addBatch(editingProduct.value.id, { quantity: qty, unitCost: cost })
+
+    if (formMode.value === 'new-batch') {
+      // 新批次录入：必须有数量和成本
+      if (qty > 0 && cost >= 0) {
+        await store.addBatch(editingProduct.value.id, { quantity: qty, unitCost: cost })
+      }
+    } else {
+      // 本批更改：如果填了数量和成本也追加入库
+      if (qty > 0 && cost >= 0) {
+        await store.addBatch(editingProduct.value.id, { quantity: qty, unitCost: cost })
+      }
     }
   } else {
     await store.addProduct(formData)
   }
   showProductForm.value = false
   editingProduct.value = null
+  selectedProduct.value = null
 }
 
 async function handleCategorySave(name) {
