@@ -1,14 +1,14 @@
 <template>
-  <div class="list-group">
-    <div v-if="sortedSales.length === 0" style="padding:16px;text-align:center;color:var(--color-text-hint);font-size:14px">
-      暂无销售记录
+  <div>
+    <div v-if="sortedSales.length === 0" style="padding:20px;text-align:center;color:var(--color-text-hint);font-size:14px">
+      💤 暂无销售记录
     </div>
     <div
       v-for="sale in sortedSales"
       :key="sale.id"
-      class="list-item"
+      class="list-item--card"
     >
-      <div class="list-item__icon" style="background: var(--color-pink-light)">
+      <div class="list-item__icon" style="background: var(--color-pink-light); border-radius: var(--radius-full)">
         <IconMoney :size="18" />
       </div>
       <div class="list-item__content">

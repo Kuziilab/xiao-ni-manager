@@ -1,9 +1,9 @@
 <template>
   <div>
-    <div v-if="sellingProducts.length === 0" style="padding:16px;text-align:center;color:var(--color-text-hint);font-size:14px">
-      暂无正在售出的商品
+    <div v-if="sellingProducts.length === 0" style="padding:20px;text-align:center;color:var(--color-text-hint);font-size:14px">
+      🏪 暂无正在售出的商品
     </div>
-    <div class="product-grid">
+    <div class="product-grid" style="padding-top:0">
       <div
         v-for="product in sellingProducts"
         :key="product.id"
@@ -11,38 +11,36 @@
       >
         <div class="product-card__image">
           <img v-if="product.imageBase64" :src="product.imageBase64" style="width:100%;height:100%;object-fit:cover" alt="" />
-          <IconImage v-else :size="48" style="opacity:0.3" />
+          <IconImage v-else :size="40" style="opacity:0.3; color: var(--color-text-hint)" />
         </div>
         <div class="product-card__body">
           <div class="product-card__name">{{ product.name }}</div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
-            <span style="font-size:12px;color:var(--color-text-secondary)">库存: {{ getStock(product.id) }}</span>
-            <div style="display:flex;gap:4px">
-              <button class="btn btn--text" style="font-size:11px;padding:2px 6px;color:var(--color-success)" @click="openSell(product)">
-                <IconMoney :size="14" />
-                售出
-              </button>
-              <button class="btn btn--text" style="font-size:11px;padding:2px 6px" @click="openManage(product)">
-                <IconEdit :size="14" />
-                管理
-              </button>
-            </div>
+          <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">
+            💰 ¥{{ product.sellingPrice }} · 库存 {{ getStock(product.id) }}
+          </div>
+          <div style="display:flex;gap:4px;margin-top:6px">
+            <button class="btn btn--cute" style="flex:1;font-size:11px;padding:4px 0" @click.stop="openSell(product)">
+              <IconMoney :size="12" />
+              售出
+            </button>
+            <button class="btn btn--ghost" style="flex:1;font-size:11px;padding:4px 0" @click.stop="openManage(product)">
+              <IconEdit :size="12" />
+              管理
+            </button>
           </div>
         </div>
       </div>
     </div>
 
     <div style="padding:8px 16px">
-      <button class="btn-icon" style="color:var(--color-text-secondary)" @click="showAddUnsold = true">
+      <button class="btn-icon" style="color:var(--color-pink);font-size:13px" @click="showAddUnsold = true">
         <IconAdd :size="16" />
-        <span style="font-size:13px">添加未售出商品</span>
+        <span>添加未售出商品</span>
       </button>
     </div>
 
-    <!-- Sell Dialog -->
     <SellDialog v-model="showSell" :product="sellingTarget" @confirm="handleSell" />
 
-    <!-- Manage Dialog -->
     <ModalDialog
       :modelValue="showManage"
       title="管理商品状态"
@@ -60,7 +58,6 @@
       </div>
     </ModalDialog>
 
-    <!-- Add Unsold Products -->
     <ModalDialog
       :modelValue="showAddUnsold"
       title="添加到今日正售"
@@ -76,7 +73,7 @@
         <div v-for="p in unsoldList" :key="p.id" style="display:flex;align-items:center;padding:8px 0;gap:8px;border-bottom:0.5px solid var(--color-separator)">
           <input type="checkbox" :value="p.id" v-model="selectedUnsold" />
           <span style="font-size:14px">{{ p.name }}</span>
-          <span style="font-size:12px;color:var(--color-text-secondary)">¥{{ p.sellingPrice }}</span>
+          <span style="font-size:12px;color:var(--color-text-secondary);margin-left:auto">¥{{ p.sellingPrice }}</span>
         </div>
       </div>
     </ModalDialog>
@@ -134,6 +131,7 @@ async function handleSell(data) {
 async function handleManage() {
   await warehouse.updateProduct(manageTarget.value.id, { status: manageStatus.value })
   showManage.value = false
+  manageTarget.value = null
 }
 
 async function handleAddUnsold() {

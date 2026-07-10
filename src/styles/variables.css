@@ -1,32 +1,36 @@
-/* ===== 小妮管家 — 白粉简约设计系统 ===== */
+/* ===== 小妮管家 — 可爱白粉设计系统 ===== */
 
 :root {
-  /* ===== 基础色板（白粉主题） ===== */
-  --color-bg:           #F6F6F6;  /* 微信灰底 — 页面背景 */
-  --color-surface:      #FFFFFF;  /* 纯白 — 卡片、列表项、弹层 */
-  --color-text-primary: #191919;  /* 近黑 — 主文字 */
-  --color-text-secondary: #8E8E93; /* 中灰 — 次级文字、时间 */
-  --color-text-hint:    #C7C7CC;  /* 浅灰 — 占位提示 */
-  --color-separator:    #ECECEC;  /* 微信分隔线 */
-  --color-pressed:      #ECECEC;  /* 列表项按压底色 */
+  /* ===== 基础色板 ===== */
+  --color-bg:           #FFF5F7;  /* 暖粉底 */
+  --color-surface:      #FFFFFF;  /* 纯白 */
+  --color-text-primary: #3D2C33;  /* 深棕 — 比纯黑更柔和 */
+  --color-text-secondary: #B5A0A8; /* 暖灰 */
+  --color-text-hint:    #D4C5CC;  /* 浅粉灰 */
+  --color-separator:    #F5E8EC;  /* 粉色分隔线 */
+  --color-pressed:      #FDE8EE;  /* 按压底色 */
 
-  /* ===== 品牌粉色系 ===== */
-  --color-pink:         #F0A0B8;  /* 主粉色 */
+  /* ===== 可爱粉色系 ===== */
+  --color-pink:         #F4A7BB;  /* 樱花粉 */
   --color-pink-light:   #FFF0F4;  /* 浅粉背景 */
-  --color-pink-dark:    #D98098;  /* 深粉 — 按压态 */
-  --color-pink-gradient: linear-gradient(135deg, #F8B8C8, #E890A0);
+  --color-pink-lighter: #FFF5F8;  /* 更浅粉 */
+  --color-pink-dark:    #E8879E;  /* 深粉 */
+  --color-pink-gradient: linear-gradient(135deg, #FCCDD3, #F4A7BB);
+  --color-rose:         #F9C5D1;  /* 玫瑰粉 */
+  --color-peach:        #FFD4C4;  /* 蜜桃色 */
+  --color-lavender:     #E8D5F0;  /* 淡紫 */
 
   /* ===== 功能色 ===== */
-  --color-success:      #07C160;  /* 微信绿 */
-  --color-warning:      #F39800;  /* 暖橙 */
-  --color-danger:       #FA5151;  /* 微信红 */
-  --color-link:         #576B95;  /* 微信链接蓝 */
+  --color-success:      #7ECB9A;  /* 薄荷绿 */
+  --color-warning:      #FFC085;  /* 暖橘 */
+  --color-danger:       #F5A0A0;  /* 柔和红 */
+  --color-link:         #B5A0C8;  /* 淡紫链接 */
 
   /* ===== 状态标签色 ===== */
-  --color-status-unsold:            #8E8E93;
-  --color-status-sold:              #07C160;
-  --color-status-pending-listing:   #F39800;
-  --color-status-currently-selling: #F0A0B8;
+  --color-status-unsold:            #C4BFC0;
+  --color-status-sold:              #7ECB9A;
+  --color-status-pending-listing:   #FFC085;
+  --color-status-currently-selling: #F4A7BB;
 
   /* ===== 字体 ===== */
   --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
@@ -52,16 +56,18 @@
   --space-8: 32px;
   --space-10: 40px;
 
-  /* ===== 圆角 ===== */
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
+  /* ===== 圆角（更圆润可爱） ===== */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
   --radius-full: 999px;
 
-  /* ===== 阴影（微信式极简） ===== */
-  --shadow-sheet: 0 -2px 12px rgba(0,0,0,0.08);
-  --shadow-modal: 0 4px 24px rgba(0,0,0,0.12);
+  /* ===== 阴影（柔和可爱） ===== */
+  --shadow-card: 0 2px 12px rgba(244, 167, 187, 0.12);
+  --shadow-sheet: 0 -4px 20px rgba(0,0,0,0.06);
+  --shadow-modal: 0 8px 32px rgba(0,0,0,0.10);
 
   /* ===== 尺寸 ===== */
   --tab-bar-height: 50px;
