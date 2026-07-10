@@ -7,7 +7,7 @@
       :class="{ 'tab-bar__item--active': tab.active }"
       @click="goTo(tab.path)"
     >
-      <component :is="tab.icon" class="tab-bar__icon" :size="24" />
+      <component :is="tab.icon" class="tab-bar__icon" :size="22" />
       <span class="tab-bar__label">{{ tab.label }}</span>
     </div>
   </nav>
@@ -34,3 +34,44 @@ function goTo(path) {
   }
 }
 </script>
+
+<style scoped>
+.tab-bar__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--color-text-secondary);
+  transition: color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  padding: 4px 0;
+}
+
+.tab-bar__item--active {
+  color: var(--color-pink);
+}
+
+.tab-bar__icon {
+  width: 22px;
+  height: 22px;
+}
+
+.tab-bar__label {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.3;
+  padding: 2px 14px;
+  border-radius: var(--radius-sm);
+  border: 2px solid transparent;
+  transition: all 0.15s;
+  background: transparent;
+}
+
+.tab-bar__item--active .tab-bar__label {
+  background: var(--color-pink-light);
+  border-color: var(--color-pink);
+  color: var(--color-pink-dark);
+}
+</style>
