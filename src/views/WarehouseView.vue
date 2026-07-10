@@ -34,6 +34,10 @@
           <button style="margin-left:2px;font-size:11px;line-height:1" @click.stop="activeCategory = ''">✕</button>
         </span>
         <span style="margin-left:auto;display:flex;align-items:center;gap:8px">
+          <span class="mode-toggle">
+            <button class="mode-toggle__btn" :class="{ 'mode-toggle__btn--active': viewMode === 'grid' }" @click.stop="viewMode = 'grid'" title="大图">▦</button>
+            <button class="mode-toggle__btn" :class="{ 'mode-toggle__btn--active': viewMode === 'list' }" @click.stop="viewMode = 'list'" title="列表">☰</button>
+          </span>
           <button style="display:flex;align-items:center;gap:2px;font-size:12px;color:var(--color-text-secondary)" @click.stop="showCategoryPicker = true">
             <IconFolder :size="14" />
             分类
@@ -42,13 +46,30 @@
         </span>
       </div>
       <div class="module-box__body--no-padding">
-        <div v-if="filteredProducts.length" class="product-grid">
+        <!-- 网格模式 -->
+        <div v-if="filteredProducts.length && viewMode === 'grid'" class="product-grid">
           <ProductCard
             v-for="product in filteredProducts"
             :key="product.id"
             :product="product"
             @click="openEdit(product)"
           />
+        </div>
+        <!-- 列表模式 -->
+        <div v-else-if="filteredProducts.length && viewMode === 'list'">
+          <div v-for="product in filteredProducts" :key="product.id" class="product-list-item" @click="openEdit(product)">
+            <img v-if="product.imageBase64" :src="product.imageBase64" class="product-list-item__thumb" />
+            <div v-else class="product-list-item__thumb" style="display:flex;align-items:center;justify-content:center;color:var(--color-text-hint)">
+              <IconImage :size="24" />
+            </div>
+            <div class="product-list-item__info">
+              <div class="product-list-item__name">{{ product.name }}</div>
+              <div class="product-list-item__meta">
+                📦库存 {{ getStock(product.id) }} · <span class="cute-badge cute-badge--pink" style="font-size:10px">{{ statusLabel(product.status) }}</span>
+              </div>
+            </div>
+            <div class="product-list-item__price">¥{{ product.sellingPrice }}</div>
+          </div>
         </div>
         <EmptyState v-else message="还没有商品哦～" action="点击录入" @action="showAddMenu = true" />
       </div>
@@ -131,7 +152,7 @@ import ProductForm from '../components/warehouse/ProductForm.vue'
 import CategoryForm from '../components/warehouse/CategoryForm.vue'
 import EmptyState from '../components/shared/EmptyState.vue'
 import BottomSheet from '../components/shared/BottomSheet.vue'
-import { IconAdd, IconArrowRight, IconFolder, IconTag, IconCheck, IconEdit } from '../icons/index.js'
+import { IconAdd, IconArrowRight, IconFolder, IconTag, IconCheck, IconEdit, IconImage } from '../icons/index.js'
 import { PRODUCT_STATUS } from '../utils/constants.js'
 import { formatDate } from '../utils/date.js'
 
@@ -152,6 +173,10 @@ const showCategoryForm = ref(false)
 const editingProduct = ref(null)
 const selectedProduct = ref(null)
 const formMode = ref('edit') // 'edit' | 'new-batch'
+const viewMode = ref('grid') // 'grid' | 'list'
+
+function getStock(productId) { return store.getBatchTotal(productId) }
+function statusLabel(s) { return PRODUCT_STATUS[s]?.label || '未知' }
 
 onMounted(async () => {
   await store.init()
