@@ -252,9 +252,9 @@ export const useWarehouseStore = defineStore('warehouse', () => {
 
   // Getters
   const unsoldProducts = computed(() => products.value.filter(p => p.status === 'unsold'))
-  const sellingProducts = computed(() => products.value.filter(p => p.status === 'personal-selling'))
+  const sellingProducts = computed(() => products.value.filter(p => p.status === 'personal-selling' || p.status === 'currently-selling'))
   const consignmentProducts = computed(() => products.value.filter(p => p.status === 'consignment'))
-  const allSellingProducts = computed(() => products.value.filter(p => p.status === 'personal-selling' || p.status === 'consignment'))
+  const allSellingProducts = computed(() => products.value.filter(p => p.status === 'personal-selling' || p.status === 'currently-selling' || p.status === 'consignment'))
 
   // 从指定商品扣减库存（FIFO顺序）
   async function reduceProductStock(productId, quantity) {
