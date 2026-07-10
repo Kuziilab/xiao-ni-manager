@@ -50,14 +50,25 @@
       </div>
     </div>
 
-    <!-- 正售方框 -->
+    <!-- 个人正售方框 -->
     <div class="module-box">
       <div class="module-box__header">
         <span class="kawaii-deco">🛍️</span>
-        正售 · {{ selectedDate }}
+        个人正售 · {{ selectedDate }}
       </div>
       <div class="module-box__body--no-padding">
-        <TodaySellingSection :date="selectedDate" />
+        <TodaySellingSection :date="selectedDate" selling-type="personal" />
+      </div>
+    </div>
+
+    <!-- 商家寄售方框 -->
+    <div class="module-box">
+      <div class="module-box__header">
+        <span class="kawaii-deco">🏪</span>
+        商家寄售 · {{ selectedDate }}
+      </div>
+      <div class="module-box__body--no-padding">
+        <TodaySellingSection :date="selectedDate" selling-type="consignment" />
       </div>
     </div>
 
