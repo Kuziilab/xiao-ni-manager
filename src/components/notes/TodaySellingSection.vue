@@ -114,24 +114,23 @@
       </div>
     </BottomSheet>
 
-    <ModalDialog
-      :modelValue="showAddUnsold"
-      title="添加到今日正售"
-      confirmText="添加"
-      @update:modelValue="showAddUnsold = $event"
-      @confirm="handleAddUnsold"
-    >
+    <BottomSheet v-model="showAddUnsold" title="添加未售出商品">
       <div v-if="unsoldList.length === 0" style="text-align:center;color:var(--color-text-hint);padding:16px">
         没有未售出商品
       </div>
-      <div v-else style="text-align:left;max-height:200px;overflow-y:auto">
-        <div v-for="p in unsoldList" :key="p.id" style="display:flex;align-items:center;padding:8px 0;gap:8px;border-bottom:0.5px solid var(--color-separator)">
-          <input type="checkbox" :value="p.id" v-model="selectedUnsold" />
-          <span style="font-size:14px">{{ p.name }}</span>
-          <span style="font-size:12px;color:var(--color-text-secondary);margin-left:auto">¥{{ p.sellingPrice }}</span>
+      <div v-else style="padding:0 16px">
+        <div v-for="p in unsoldList" :key="p.id" style="display:flex;align-items:center;padding:10px 0;border-bottom:0.5px solid var(--color-separator)">
+          <label style="display:flex;align-items:center;gap:8px;flex:1" @click.stop>
+            <input type="checkbox" :value="p.id" v-model="selectedUnsold" style="width:18px;height:18px;accent-color:var(--color-pink)" />
+            <span style="font-size:14px">{{ p.name }}</span>
+          </label>
+          <span style="font-size:12px;color:var(--color-text-secondary)">¥{{ p.sellingPrice }}</span>
         </div>
+        <button class="btn btn--cute" style="width:100%;margin-top:12px" @click="handleAddUnsold" :disabled="selectedUnsold.length === 0">
+          添加选中商品 ({{ selectedUnsold.length }})
+        </button>
       </div>
-    </ModalDialog>
+    </BottomSheet>
   </div>
 </template>
 
