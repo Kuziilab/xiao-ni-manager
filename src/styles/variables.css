@@ -30,7 +30,8 @@
   --color-status-unsold:            #C4BFC0;
   --color-status-sold:              #7ECB9A;
   --color-status-pending-listing:   #FFC085;
-  --color-status-currently-selling: #F4A7BB;
+  --color-status-personal-selling:  #F4A7BB;
+  --color-status-consignment:       #B5A0C8;
 
   /* ===== 字体 ===== */
   --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
