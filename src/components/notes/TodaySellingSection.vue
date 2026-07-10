@@ -178,10 +178,13 @@ async function handleManage() {
 }
 
 async function handleAddUnsold() {
+  if (selectedUnsold.value.length === 0) return
   for (const productId of selectedUnsold.value) {
     await warehouse.updateProduct(productId, { status: 'currently-selling' })
   }
   selectedUnsold.value = []
   showAddUnsold.value = false
+  // Force refresh products to update selling list
+  await warehouse.init()
 }
 </script>

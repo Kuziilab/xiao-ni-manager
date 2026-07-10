@@ -12,14 +12,17 @@
       <canvas ref="chartCanvas" />
     </div>
 
-    <!-- 日历 — 按日查看 -->
+    <!-- 日历（默认收起） -->
     <div class="module-box">
-      <div class="module-box__header">
+      <div class="module-box__header" style="cursor:pointer" @click="showCalendar = !showCalendar">
         <span class="kawaii-deco">📅</span>
-        {{ monthLabel }}
-        <span style="margin-left:auto;font-size:11px;color:var(--color-text-hint)">点击日期查看详情</span>
+        {{ selectedDate }}
+        <span style="margin-left:auto;display:flex;align-items:center;gap:4px;font-size:12px;color:var(--color-pink)">
+          <IconCalendar :size="16" />
+          {{ showCalendar ? '收起' : '日历' }}
+        </span>
       </div>
-      <div class="module-box__body--no-padding">
+      <div class="module-box__body--no-padding" v-if="showCalendar">
         <div style="padding: 0 12px 8px">
           <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0">
             <button class="btn btn--ghost" style="padding:2px 8px;font-size:12px" @click="prevMonth">◀</button>
@@ -120,9 +123,11 @@ import SalesBreakdown from '../components/accounting/SalesBreakdown.vue'
 import TransactionForm from '../components/accounting/TransactionForm.vue'
 import { useAccountingStore } from '../stores/accounting.js'
 import { useCalendar } from '../composables/useCalendar.js'
+import { IconCalendar } from '../icons/index.js'
 
 const store = useAccountingStore()
 const chartCanvas = ref(null)
+const showCalendar = ref(false)
 
 const {
   cells, monthLabel, selectedDate,
