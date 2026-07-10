@@ -115,8 +115,11 @@ import { useAccountingStore } from '../../stores/accounting.js'
 import { today } from '../../utils/date.js'
 
 const props = defineProps({
-  date: { type: String, default: () => today() }
+  date: { type: String, default: () => today() },
+  sellingType: { type: String, default: 'personal' } // 'personal' | 'consignment'
 })
+
+const targetStatus = computed(() => props.sellingType === 'consignment' ? 'consignment' : 'personal-selling')
 
 const warehouse = useWarehouseStore()
 const accounting = useAccountingStore()
@@ -135,7 +138,9 @@ onMounted(async () => {
   await accounting.init()
 })
 
-const sellingProducts = computed(() => warehouse.sellingProducts)
+const sellingProducts = computed(() =>
+  warehouse.products.filter(p => p.status === targetStatus.value)
+)
 const unsoldList = computed(() => warehouse.unsoldProducts)
 
 // Sales for a specific day
@@ -180,7 +185,7 @@ async function handleManage() {
 async function handleAddUnsold() {
   if (selectedUnsold.value.length === 0) return
   for (const productId of selectedUnsold.value) {
-    await warehouse.updateProduct(productId, { status: 'currently-selling' })
+    await warehouse.updateProduct(productId, { status: targetStatus.value })
   }
   selectedUnsold.value = []
   showAddUnsold.value = false
