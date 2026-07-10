@@ -71,24 +71,12 @@
         <TodaySellingSection :date="selectedDate" selling-type="consignment" />
       </div>
     </div>
-
-    <!-- 长期目标方框 -->
-    <div class="module-box">
-      <div class="module-box__header">
-        <span class="kawaii-deco">🎯</span>
-        长期目标
-      </div>
-      <div class="module-box__body--no-padding">
-        <LongTermGoalSection />
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import DailyGoalSection from '../components/notes/DailyGoalSection.vue'
-import LongTermGoalSection from '../components/notes/LongTermGoalSection.vue'
 import TodaySellingSection from '../components/notes/TodaySellingSection.vue'
 import { useCalendar } from '../composables/useCalendar.js'
 import { IconCalendar } from '../icons/index.js'
