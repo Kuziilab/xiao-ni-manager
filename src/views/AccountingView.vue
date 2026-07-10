@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <PeriodStats />
+    <PeriodStats @showDetail="openReport" />
 
     <!-- 利润柱状图 -->
     <div class="chart-container">
@@ -92,16 +92,22 @@
       </div>
     </div>
 
-    <!-- 售出明细方框 -->
-    <div class="module-box">
-      <div class="module-box__header">
-        <span class="kawaii-deco">📜</span>
-        全部售出明细
+    <!-- 账单明细弹窗 -->
+    <BottomSheet v-model="showReport" :title="reportTitle">
+      <div v-if="reportSales.length === 0" style="text-align:center;padding:16px;color:var(--color-text-hint)">暂无售出记录</div>
+      <div v-else style="padding:0 16px">
+        <div v-for="s in reportSales" :key="s.id" style="display:flex;justify-content:space-between;padding:8px 0;font-size:14px;border-bottom:0.5px solid var(--color-separator)">
+          <div>
+            <div style="font-weight:500">{{ s.productName }}</div>
+            <div style="font-size:12px;color:var(--color-text-secondary)">{{ formatDateTime(s.saleTime) }} · {{ s.quantity }}件</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-weight:600">¥{{ s.totalRevenue }}</div>
+            <div style="font-size:12px" :style="{color:s.totalProfit>=0?'var(--color-success)':'var(--color-danger)'}">利润 ¥{{ s.totalProfit }}</div>
+          </div>
+        </div>
       </div>
-      <div class="module-box__body--no-padding">
-        <SalesBreakdown />
-      </div>
-    </div>
+    </BottomSheet>
 
     <!-- 自定义收支方框 -->
     <div class="module-box">
@@ -119,15 +125,33 @@
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import PeriodStats from '../components/accounting/PeriodStats.vue'
-import SalesBreakdown from '../components/accounting/SalesBreakdown.vue'
 import TransactionForm from '../components/accounting/TransactionForm.vue'
+import BottomSheet from '../components/shared/BottomSheet.vue'
 import { useAccountingStore } from '../stores/accounting.js'
 import { useCalendar } from '../composables/useCalendar.js'
 import { IconCalendar } from '../icons/index.js'
+import { formatDateTime } from '../utils/date.js'
 
 const store = useAccountingStore()
 const chartCanvas = ref(null)
 const showCalendar = ref(false)
+
+// 账单报表
+const showReport = ref(false)
+const reportTitle = ref('')
+const reportPeriod = ref('today')
+const reportSales = computed(() => store.getSalesByPeriod(reportPeriod.value).sort((a,b) => b.saleTime - a.saleTime))
+
+function openReport(period, label) {
+  reportPeriod.value = period
+  reportTitle.value = label + ' · 售出明细'
+  showReport.value = true
+}
+
+// 监听 PeriodStats 的点击事件
+function onStatClick(period, label) {
+  openReport(period, label)
+}
 
 const {
   cells, monthLabel, selectedDate,
