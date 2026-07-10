@@ -7,6 +7,9 @@
     <div class="product-card__body">
       <div class="product-card__name">{{ product.name }}</div>
       <div class="product-card__price">¥{{ product.sellingPrice }}</div>
+      <div style="display:flex;align-items:center;gap:4px;margin-top:2px;font-size:11px;color:var(--color-text-secondary)">
+        📦 库存 {{ stock }}
+      </div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
         <span class="cute-badge" :class="'cute-badge--' + badgeColor">
           {{ statusInfo.label }}
@@ -23,6 +26,7 @@
 import { computed } from 'vue'
 import { IconImage, IconMore } from '../../icons/index.js'
 import { PRODUCT_STATUS } from '../../utils/constants.js'
+import { useWarehouseStore } from '../../stores/warehouse.js'
 
 const props = defineProps({
   product: { type: Object, required: true }
@@ -30,13 +34,18 @@ const props = defineProps({
 
 defineEmits(['click', 'manage'])
 
+const warehouse = useWarehouseStore()
+
+const stock = computed(() => warehouse.getBatchTotal(props.product.id))
+
 const statusInfo = computed(() => PRODUCT_STATUS[props.product.status] || { label: '未知', color: '#999' })
 
 const badgeColor = computed(() => {
   switch (props.product.status) {
     case 'sold': return 'green'
     case 'pending-listing': return 'orange'
-    case 'currently-selling': return 'pink'
+    case 'personal-selling': return 'pink'
+    case 'consignment': return 'pink'
     default: return 'pink'
   }
 })
