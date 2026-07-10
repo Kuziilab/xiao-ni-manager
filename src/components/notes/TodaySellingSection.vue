@@ -82,21 +82,39 @@
 
     <SellDialog v-model="showSell" :product="sellingTarget" @confirm="handleSell" />
 
-    <ModalDialog
-      :modelValue="showManage"
-      title="管理商品状态"
-      confirmText="保存"
-      @update:modelValue="showManage = $event"
-      @confirm="handleManage"
-    >
-      <div style="text-align:left">
-        <label class="form-label">更改状态</label>
-        <select class="form-select" v-model="manageStatus">
-          <option value="unsold">未售出</option>
-          <option value="pending-listing">待上架（下架）</option>
-        </select>
+    <!-- 管理面板 -->
+    <BottomSheet v-model="showManage" :title="'管理 - ' + (manageTarget?.name || '')">
+      <!-- 下架部分库存 -->
+      <div style="padding:0 16px 12px;border-bottom:1px solid var(--color-separator);margin-bottom:12px">
+        <div style="font-size:14px;font-weight:600;margin-bottom:8px">📦 下架部分库存</div>
+        <div style="display:flex;gap:8px;align-items:flex-end">
+          <div style="flex:1">
+            <label class="form-label">下架数量</label>
+            <input class="form-input" v-model.number="delistQty" type="number" min="1" :max="manageStock" />
+          </div>
+          <button class="btn btn--cute" style="flex-shrink:0" @click="doDelist">下架</button>
+        </div>
+        <div style="font-size:11px;color:var(--color-text-hint);margin-top:4px">当前库存：{{ manageStock }} 件，下架后变为待上架</div>
       </div>
-    </ModalDialog>
+
+      <!-- 变更并分裂 -->
+      <div style="padding:0 16px 12px">
+        <div style="font-size:14px;font-weight:600;margin-bottom:8px">✂️ 变更并分裂为新商品</div>
+        <div class="form-group">
+          <label class="form-label">分裂数量</label>
+          <input class="form-input" v-model.number="splitQty" type="number" min="1" :max="manageStock" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">新成本价 (元)</label>
+          <div class="price-input-wrapper"><input class="form-input" v-model="splitCost" type="number" step="0.01" min="0" /></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">新售价 (元)</label>
+          <div class="price-input-wrapper"><input class="form-input" v-model="splitPrice" type="number" step="0.01" min="0" /></div>
+        </div>
+        <button class="btn btn--cute" style="width:100%" @click="doSplit">分裂为独立商品</button>
+      </div>
+    </BottomSheet>
 
     <ModalDialog
       :modelValue="showAddUnsold"
@@ -122,6 +140,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import ModalDialog from '../shared/ModalDialog.vue'
+import BottomSheet from '../shared/BottomSheet.vue'
 import SellDialog from './SellDialog.vue'
 import { IconImage, IconAdd, IconMoney, IconEdit } from '../../icons/index.js'
 import { useWarehouseStore } from '../../stores/warehouse.js'
@@ -135,15 +154,21 @@ const props = defineProps({
 
 const targetStatus = computed(() => props.sellingType === 'consignment' ? 'consignment' : 'personal-selling')
 
+import { useViewMode } from '../../composables/useViewMode.js'
+
 const warehouse = useWarehouseStore()
 const accounting = useAccountingStore()
-const viewMode = ref('grid')
+const { viewMode } = useViewMode()
 const showSell = ref(false)
 const showManage = ref(false)
 const showAddUnsold = ref(false)
 const sellingTarget = ref(null)
 const manageTarget = ref(null)
-const manageStatus = ref('unsold')
+const manageStock = ref(0)
+const delistQty = ref(1)
+const splitQty = ref(1)
+const splitCost = ref(0)
+const splitPrice = ref(0)
 const selectedUnsold = ref([])
 
 const isToday = computed(() => props.date === today())
@@ -177,7 +202,11 @@ function openSell(product) {
 
 function openManage(product) {
   manageTarget.value = product
-  manageStatus.value = 'unsold'
+  manageStock.value = warehouse.getBatchTotal(product.id)
+  delistQty.value = 1
+  splitQty.value = 1
+  splitCost.value = 0
+  splitPrice.value = product.sellingPrice || 0
   showManage.value = true
 }
 
@@ -191,8 +220,20 @@ async function handleSell(data) {
   }
 }
 
-async function handleManage() {
-  await warehouse.updateProduct(manageTarget.value.id, { status: manageStatus.value })
+async function doDelist() {
+  const qty = delistQty.value
+  if (qty <= 0 || qty > manageStock.value) return
+  await warehouse.reduceProductStock(manageTarget.value.id, qty)
+  await warehouse.init()
+  showManage.value = false
+  manageTarget.value = null
+}
+
+async function doSplit() {
+  const qty = splitQty.value
+  if (qty <= 0 || qty > manageStock.value) return
+  await warehouse.splitProduct(manageTarget.value.id, qty, Number(splitCost.value), Number(splitPrice.value))
+  await warehouse.init()
   showManage.value = false
   manageTarget.value = null
 }
