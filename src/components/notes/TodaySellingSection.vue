@@ -245,10 +245,11 @@ async function handleAddUnsold() {
   if (selectedUnsold.value.length === 0) return
   for (const productId of selectedUnsold.value) {
     await warehouse.updateProduct(productId, { status: targetStatus.value })
+    // 直接改内存中的状态，确保 UI 即时更新
+    const p = warehouse.products.find(x => x.id === productId)
+    if (p) p.status = targetStatus.value
   }
   selectedUnsold.value = []
   showAddUnsold.value = false
-  // Force refresh products to update selling list
-  await warehouse.init()
 }
 </script>
