@@ -246,3 +246,10 @@ export const IconCraft = icon('IconCraft', [
   'M10 1v3',
   'M14 1v3'
 ])
+
+// 购物车
+export const IconCart = icon('IconCart', [
+  'M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z',
+  'M3 6h18',
+  'M16 10a4 4 0 0 1-8 0'
+])
