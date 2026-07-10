@@ -7,8 +7,7 @@
       :class="{ 'tab-bar__item--active': tab.active }"
       @click="goTo(tab.path)"
     >
-      <component :is="tab.icon" class="tab-bar__icon" :size="22" />
-      <span class="tab-bar__label">{{ tab.label }}</span>
+      <img :src="tab.img" class="tab-bar__img" :alt="tab.label" />
     </div>
   </nav>
 </template>
@@ -16,16 +15,16 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { IconWarehouse, IconNotes, IconAccounting, IconProfile } from '../../icons/index.js'
 
+const BASE = import.meta.env.BASE_URL
 const route = useRoute()
 const router = useRouter()
 
 const tabs = computed(() => [
-  { path: '/warehouse', label: '仓库', icon: IconWarehouse, active: route.path.startsWith('/warehouse') },
-  { path: '/notes', label: '记事', icon: IconNotes, active: route.path.startsWith('/notes') },
-  { path: '/accounting', label: '记账', icon: IconAccounting, active: route.path.startsWith('/accounting') },
-  { path: '/profile', label: '我', icon: IconProfile, active: route.path.startsWith('/profile') }
+  { path: '/warehouse', label: '仓库', img: `${BASE}images/1.jpg`, active: route.path.startsWith('/warehouse') },
+  { path: '/notes', label: '记事', img: `${BASE}images/2.jpg`, active: route.path.startsWith('/notes') },
+  { path: '/accounting', label: '记账', img: `${BASE}images/3.jpg`, active: route.path.startsWith('/accounting') },
+  { path: '/profile', label: '我', img: `${BASE}images/4.jpg`, active: route.path.startsWith('/profile') }
 ])
 
 function goTo(path) {
@@ -39,39 +38,25 @@ function goTo(path) {
 .tab-bar__item {
   flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  color: var(--color-text-secondary);
-  transition: color 0.15s;
+  padding: 6px 0;
+  transition: opacity 0.15s;
   -webkit-tap-highlight-color: transparent;
-  padding: 4px 0;
 }
 
 .tab-bar__item--active {
-  color: var(--color-pink);
+  opacity: 1;
 }
 
-.tab-bar__icon {
-  width: 22px;
-  height: 22px;
+.tab-bar__item:not(.tab-bar__item--active) {
+  opacity: 0.55;
 }
 
-.tab-bar__label {
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1.3;
-  padding: 2px 14px;
-  border-radius: var(--radius-sm);
-  border: 2px solid transparent;
-  transition: all 0.15s;
-  background: transparent;
-}
-
-.tab-bar__item--active .tab-bar__label {
-  background: var(--color-pink-light);
-  border-color: var(--color-pink);
-  color: var(--color-pink-dark);
+.tab-bar__img {
+  height: 38px;
+  width: auto;
+  max-width: 90%;
+  object-fit: contain;
 }
 </style>
