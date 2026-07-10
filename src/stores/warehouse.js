@@ -22,6 +22,12 @@ export const useWarehouseStore = defineStore('warehouse', () => {
     try {
       await openDB()
       products.value = await dbGetAll('products')
+      // 迁移旧数据
+      let migrated = false
+      for (const p of products.value) {
+        if (p.status === 'currently-selling') { p.status = 'personal-selling'; await dbPut('products', p); migrated = true }
+      }
+      if (migrated) products.value = await dbGetAll('products')
       categories.value = await dbGetAll('categories')
       batches.value = await dbGetAll('batches')
     } catch (err) {
