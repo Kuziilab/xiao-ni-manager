@@ -72,7 +72,7 @@ export const useWarehouseStore = defineStore('warehouse', () => {
       categoryId: form.categoryId || null,
       status: form.status || 'unsold',
       sellingPrice: Number(form.sellingPrice) || 0,
-      listingTime: form.status === 'currently-selling' ? now : null,
+      listingTime: form.status === 'personal-selling' ? now : null,
       soldTime: form.status === 'sold' ? now : null,
       createdAt: now,
       updatedAt: now
@@ -106,7 +106,7 @@ export const useWarehouseStore = defineStore('warehouse', () => {
     product.updatedAt = Date.now()
 
     // Update status timestamps
-    if (form.status === 'currently-selling' && !product.listingTime) {
+    if (form.status === 'personal-selling' && !product.listingTime) {
       product.listingTime = Date.now()
     }
     if (form.status === 'sold') {
@@ -252,7 +252,9 @@ export const useWarehouseStore = defineStore('warehouse', () => {
 
   // Getters
   const unsoldProducts = computed(() => products.value.filter(p => p.status === 'unsold'))
-  const sellingProducts = computed(() => products.value.filter(p => p.status === 'currently-selling'))
+  const sellingProducts = computed(() => products.value.filter(p => p.status === 'personal-selling'))
+  const consignmentProducts = computed(() => products.value.filter(p => p.status === 'consignment'))
+  const allSellingProducts = computed(() => products.value.filter(p => p.status === 'personal-selling' || p.status === 'consignment'))
 
   return {
     products, categories, batches, loading,
@@ -262,6 +264,6 @@ export const useWarehouseStore = defineStore('warehouse', () => {
     addBatch, getProductBatches, getBatchTotal,
     sellProduct,
     filteredProducts,
-    unsoldProducts, sellingProducts
+    unsoldProducts, sellingProducts, consignmentProducts, allSellingProducts
   }
 })
