@@ -1,5 +1,5 @@
 <template>
-  <BottomSheet :modelValue="modelValue" :title="isEdit ? '编辑商品' : '新商品'" maxHeight="90vh" @update:modelValue="$emit('update:modelValue', $event)">
+  <BottomSheet :modelValue="modelValue" :title="formTitle" maxHeight="90vh" @update:modelValue="$emit('update:modelValue', $event)">
     <div class="form-group">
       <label class="form-label">商品图片</label>
       <ImagePicker :modelValue="form.imageBase64" @select="onImageSelect" />
@@ -68,7 +68,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, inject } from 'vue'
+import { ref, reactive, watch, computed } from 'vue'
 import BottomSheet from '../shared/BottomSheet.vue'
 import ImagePicker from '../shared/ImagePicker.vue'
 import ConfirmDialog from '../shared/ConfirmDialog.vue'
@@ -78,13 +78,18 @@ import { useWarehouseStore } from '../../stores/warehouse.js'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
-  product: { type: Object, default: null }
+  product: { type: Object, default: null },
+  mode: { type: String, default: 'edit' } // 'edit' | 'new-batch'
 })
 
 const emit = defineEmits(['update:modelValue', 'save'])
 const store = useWarehouseStore()
 
 const isEdit = ref(false)
+const formTitle = computed(() => {
+  if (!isEdit.value) return '新商品'
+  return props.mode === 'new-batch' ? '新批次录入' : '本批信息更改'
+})
 const showDelete = ref(false)
 const statuses = PRODUCT_STATUS_LIST
 const categories = ref([])
