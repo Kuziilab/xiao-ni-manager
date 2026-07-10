@@ -158,6 +158,12 @@ function openNewCategory() {
 async function handleSave(formData) {
   if (editingProduct.value?.id) {
     await store.updateProduct(editingProduct.value.id, formData)
+    // 如果编辑时填写了数量和成本，追加入库批次
+    const qty = Number(formData.quantity)
+    const cost = Number(formData.unitCost)
+    if (qty > 0 && cost >= 0) {
+      await store.addBatch(editingProduct.value.id, { quantity: qty, unitCost: cost })
+    }
   } else {
     await store.addProduct(formData)
   }
