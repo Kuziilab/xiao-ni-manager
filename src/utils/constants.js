@@ -5,7 +5,8 @@ export const PRODUCT_STATUS = {
   unsold: { label: '未售出', color: 'var(--color-status-unsold)' },
   sold: { label: '已售出', color: 'var(--color-status-sold)' },
   'pending-listing': { label: '待上架', color: 'var(--color-status-pending-listing)' },
-  'currently-selling': { label: '正在售出', color: 'var(--color-status-currently-selling)' }
+  'personal-selling': { label: '个人正售', color: 'var(--color-status-personal-selling)' },
+  consignment: { label: '商家寄售', color: 'var(--color-status-consignment)' }
 }
 
 export const PRODUCT_STATUS_LIST = Object.entries(PRODUCT_STATUS).map(([value, info]) => ({
