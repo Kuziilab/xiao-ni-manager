@@ -107,7 +107,7 @@ async function onSaved() {
 
 async function backupData() {
   const data = await exportAllData()
-  downloadJSON(data, `小妮管家备份_${today()}.json`)
+  downloadJSON(data, `堆堆的仓库备份_${today()}.json`)
 }
 
 function triggerRestore() {
