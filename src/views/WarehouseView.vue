@@ -197,25 +197,19 @@ function openNewCategory() {
 }
 
 async function handleSave(formData) {
-  if (editingProduct.value?.id) {
-    // 先更新产品基本信息
+  if (formMode.value === 'new-batch') {
+    // 新批次录入：创建全新的独立商品，不关联原商品
+    await store.addProduct(formData)
+  } else if (editingProduct.value?.id) {
+    // 本批更改：更新原商品信息
     await store.updateProduct(editingProduct.value.id, formData)
-
     const qty = Number(formData.quantity)
     const cost = Number(formData.unitCost)
-
-    if (formMode.value === 'new-batch') {
-      // 新批次录入：必须有数量和成本
-      if (qty > 0 && cost >= 0) {
-        await store.addBatch(editingProduct.value.id, { quantity: qty, unitCost: cost })
-      }
-    } else {
-      // 本批更改：如果填了数量和成本也追加入库
-      if (qty > 0 && cost >= 0) {
-        await store.addBatch(editingProduct.value.id, { quantity: qty, unitCost: cost })
-      }
+    if (qty > 0 && cost >= 0) {
+      await store.addBatch(editingProduct.value.id, { quantity: qty, unitCost: cost })
     }
   } else {
+    // 新建商品
     await store.addProduct(formData)
   }
   showProductForm.value = false
