@@ -3,8 +3,11 @@
     <!-- Today mode: show currently-selling products -->
     <template v-if="isToday">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 16px">
-        <div v-if="sellingProducts.length" style="font-size:12px;color:var(--color-text-hint)">{{ sellingProducts.length }}件</div>
-        <div v-else />
+        <button style="font-size:15px;line-height:1;padding:2px 8px;border-radius:var(--radius-xs);transition:all 0.15s;display:flex;align-items:center;gap:2px"
+          :style="cartMode ? {background:'var(--color-pink-light)',color:'var(--color-pink)',fontWeight:'600'} : {color:'var(--color-text-hint)'}"
+          @click="toggleCart">
+          <IconCart :size="16" /> 批量结算
+        </button>
         <span class="mode-toggle">
           <button class="mode-toggle__btn" :class="{ 'mode-toggle__btn--active': viewMode === 'grid' }" @click="viewMode = 'grid'" title="大图">▦</button>
           <button class="mode-toggle__btn" :class="{ 'mode-toggle__btn--active': viewMode === 'list' }" @click="viewMode = 'list'" title="列表">☰</button>
@@ -23,7 +26,19 @@
           <div class="product-card__body">
             <div class="product-card__name">{{ product.name }}</div>
             <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">💰 ¥{{ product.sellingPrice }} · 库存 {{ getStock(product.id) }}</div>
-            <div style="display:flex;gap:4px;margin-top:6px">
+            <!-- 购物车模式 -->
+            <div v-if="cartMode" style="margin-top:6px">
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;margin-bottom:4px" @click.stop>
+                <input type="checkbox" :checked="cartChecked[product.id]" @change="toggleCheck(product.id)" style="width:16px;height:16px;accent-color:var(--color-pink)" />
+                加入结算
+              </label>
+              <div v-if="cartChecked[product.id]" style="display:flex;align-items:center;gap:4px">
+                <button class="btn btn--ghost" style="width:26px;height:26px;padding:0;font-size:16px;border-radius:50%;background:var(--color-bg)" @click.stop="decQty(product.id)">−</button>
+                <input class="form-input" type="number" min="0" :max="getStock(product.id)" :value="cartQty[product.id] || 0" @input="setQty(product.id, $event.target.value)" style="flex:1;height:26px;text-align:center;font-size:12px;padding:0" />
+                <button class="btn btn--ghost" style="width:26px;height:26px;padding:0;font-size:16px;border-radius:50%;background:var(--color-bg)" @click.stop="incQty(product.id)">+</button>
+              </div>
+            </div>
+            <div v-else style="display:flex;gap:4px;margin-top:6px">
               <button class="btn btn--cute" style="flex:1;font-size:11px;padding:4px 0" @click.stop="openSell(product)">💰 售出</button>
               <button class="btn btn--ghost" style="flex:1;font-size:11px;padding:4px 0" @click.stop="openManage(product)">✎ 管理</button>
             </div>
@@ -38,12 +53,31 @@
           <div class="product-list-item__info">
             <div class="product-list-item__name">{{ product.name }}</div>
             <div class="product-list-item__meta">💰 ¥{{ product.sellingPrice }} · 库存 {{ getStock(product.id) }}</div>
+            <div v-if="cartMode && cartChecked[product.id]" style="display:flex;align-items:center;gap:4px;margin-top:4px">
+              <button class="btn btn--ghost" style="width:22px;height:22px;padding:0;font-size:14px;border-radius:50%;background:var(--color-bg)" @click.stop="decQty(product.id)">−</button>
+              <input class="form-input" type="number" min="0" :max="getStock(product.id)" :value="cartQty[product.id] || 0" @input="setQty(product.id, $event.target.value)" style="width:36px;height:22px;text-align:center;font-size:12px;padding:0" />
+              <button class="btn btn--ghost" style="width:22px;height:22px;padding:0;font-size:14px;border-radius:50%;background:var(--color-bg)" @click.stop="incQty(product.id)">+</button>
+            </div>
           </div>
-          <div class="product-list-item__actions">
-            <button class="btn btn--cute" style="font-size:11px;padding:3px 8px" @click.stop="openSell(product)">售出</button>
-            <button class="btn btn--ghost" style="font-size:11px;padding:3px 8px" @click.stop="openManage(product)">管理</button>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <label v-if="cartMode" style="display:flex;align-items:center" @click.stop>
+              <input type="checkbox" :checked="cartChecked[product.id]" @change="toggleCheck(product.id)" style="width:16px;height:16px;accent-color:var(--color-pink)" />
+            </label>
+            <div v-if="!cartMode" class="product-list-item__actions">
+              <button class="btn btn--cute" style="font-size:11px;padding:3px 8px" @click.stop="openSell(product)">售出</button>
+              <button class="btn btn--ghost" style="font-size:11px;padding:3px 8px" @click.stop="openManage(product)">管理</button>
+            </div>
           </div>
         </div>
+      </div>
+
+      <!-- 购物车结算栏 -->
+      <div v-if="cartMode && cartTotalItems > 0" style="position:sticky;bottom:0;background:var(--color-surface);border-top:2px solid var(--color-pink);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;z-index:10;margin-top:8px">
+        <div>
+          <div style="font-size:12px;color:var(--color-text-secondary)">已选 {{ cartCheckedCount }} 种 · 共 {{ cartTotalItems }} 件</div>
+          <div style="font-size:18px;font-weight:700;color:var(--color-pink-dark)">¥{{ cartTotalAmount }}</div>
+        </div>
+        <button class="btn btn--cute" style="font-size:15px;padding:10px 24px" @click="checkout">结算</button>
       </div>
 
       <div style="padding:8px 16px">
@@ -140,7 +174,7 @@ import { ref, computed, onMounted } from 'vue'
 import ModalDialog from '../shared/ModalDialog.vue'
 import BottomSheet from '../shared/BottomSheet.vue'
 import SellDialog from './SellDialog.vue'
-import { IconImage, IconAdd, IconMoney, IconEdit } from '../../icons/index.js'
+import { IconImage, IconAdd, IconMoney, IconEdit, IconCart } from '../../icons/index.js'
 import { useWarehouseStore } from '../../stores/warehouse.js'
 import { useAccountingStore } from '../../stores/accounting.js'
 import { today } from '../../utils/date.js'
@@ -168,6 +202,77 @@ const splitQty = ref(1)
 const splitCost = ref(0)
 const splitPrice = ref(0)
 const selectedUnsold = ref([])
+
+// 购物车
+const cartMode = ref(false)
+const cartChecked = reactive({})
+const cartQty = reactive({})
+
+const cartCheckedCount = computed(() => Object.keys(cartChecked).filter(k => cartChecked[k]).length)
+const cartTotalItems = computed(() => {
+  let total = 0
+  for (const [id, checked] of Object.entries(cartChecked)) {
+    if (checked) total += Number(cartQty[id]) || 0
+  }
+  return total
+})
+const cartTotalAmount = computed(() => {
+  let sum = 0
+  for (const p of sellingProducts.value) {
+    if (cartChecked[p.id]) sum += p.sellingPrice * (Number(cartQty[p.id]) || 0)
+  }
+  return sum
+})
+
+function toggleCart() {
+  cartMode.value = !cartMode.value
+  if (!cartMode.value) {
+    for (const k of Object.keys(cartChecked)) delete cartChecked[k]
+    for (const k of Object.keys(cartQty)) delete cartQty[k]
+  }
+}
+function toggleCheck(productId) {
+  if (cartChecked[productId]) {
+    delete cartChecked[productId]
+    delete cartQty[productId]
+  } else {
+    cartChecked[productId] = true
+    cartQty[productId] = 1
+  }
+}
+function getCartQty(productId) { return Number(cartQty[productId]) || 0 }
+function setQty(productId, val) {
+  const v = parseInt(val) || 0
+  const max = getStock(productId)
+  cartQty[productId] = Math.max(0, Math.min(v, max))
+  if (cartQty[productId] === 0) delete cartChecked[productId]
+}
+function incQty(productId) {
+  const max = getStock(productId)
+  cartQty[productId] = Math.min((Number(cartQty[productId]) || 0) + 1, max)
+}
+function decQty(productId) {
+  const cur = Number(cartQty[productId]) || 0
+  if (cur <= 1) { delete cartChecked[productId]; delete cartQty[productId] }
+  else cartQty[productId] = cur - 1
+}
+
+async function checkout() {
+  const items = sellingProducts.value.filter(p => cartChecked[p.id] && (Number(cartQty[p.id]) || 0) > 0)
+  if (!items.length) return
+  if (!confirm(`确认结算 ${cartTotalItems.value} 件商品，总计 ¥${cartTotalAmount.value}？`)) return
+  for (const product of items) {
+    try {
+      await warehouse.sellProduct(product.id, product.sellingPrice, Number(cartQty[product.id]) || 0)
+    } catch (err) {
+      alert(`${product.name}: ${err.message}`)
+    }
+  }
+  for (const k of Object.keys(cartChecked)) delete cartChecked[k]
+  for (const k of Object.keys(cartQty)) delete cartQty[k]
+  cartMode.value = false
+  await warehouse.init()
+}
 
 const isToday = computed(() => props.date === today())
 
