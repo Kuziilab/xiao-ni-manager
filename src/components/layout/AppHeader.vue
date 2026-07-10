@@ -10,6 +10,6 @@ const BASE = import.meta.env.BASE_URL
 const bgImage = `${BASE}images/7.jpg`
 
 defineProps({
-  title: { type: String, default: '小妮管家' }
+  title: { type: String, default: '堆堆的仓库' }
 })
 </script>
