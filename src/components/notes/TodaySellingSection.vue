@@ -2,15 +2,20 @@
   <div>
     <!-- Today mode: show currently-selling products -->
     <template v-if="isToday">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 16px">
+        <div v-if="sellingProducts.length" style="font-size:12px;color:var(--color-text-hint)">{{ sellingProducts.length }}件</div>
+        <div v-else />
+        <span class="mode-toggle">
+          <button class="mode-toggle__btn" :class="{ 'mode-toggle__btn--active': viewMode === 'grid' }" @click="viewMode = 'grid'" title="大图">▦</button>
+          <button class="mode-toggle__btn" :class="{ 'mode-toggle__btn--active': viewMode === 'list' }" @click="viewMode = 'list'" title="列表">☰</button>
+        </span>
+      </div>
       <div v-if="sellingProducts.length === 0" style="padding:20px;text-align:center;color:var(--color-text-hint);font-size:14px">
         🏪 暂无正在售出的商品
       </div>
-      <div class="product-grid" style="padding-top:0">
-        <div
-          v-for="product in sellingProducts"
-          :key="product.id"
-          class="product-card"
-        >
+      <!-- 网格模式 -->
+      <div v-else-if="viewMode === 'grid'" class="product-grid" style="padding-top:0">
+        <div v-for="product in sellingProducts" :key="product.id" class="product-card">
           <div class="product-card__image">
             <img v-if="product.imageBase64" :src="product.imageBase64" style="width:100%;height:100%;object-fit:cover" alt="" />
             <IconImage v-else :size="40" style="opacity:0.3; color: var(--color-text-hint)" />
@@ -21,15 +26,24 @@
               💰 ¥{{ product.sellingPrice }} · 库存 {{ getStock(product.id) }}
             </div>
             <div style="display:flex;gap:4px;margin-top:6px">
-              <button class="btn btn--cute" style="flex:1;font-size:11px;padding:4px 0" @click.stop="openSell(product)">
-                <IconMoney :size="12" />
-                售出
-              </button>
-              <button class="btn btn--ghost" style="flex:1;font-size:11px;padding:4px 0" @click.stop="openManage(product)">
-                <IconEdit :size="12" />
-                管理
-              </button>
+              <button class="btn btn--cute" style="flex:1;font-size:11px;padding:4px 0" @click.stop="openSell(product)">💰 售出</button>
+              <button class="btn btn--ghost" style="flex:1;font-size:11px;padding:4px 0" @click.stop="openManage(product)">✎ 管理</button>
             </div>
+          </div>
+        </div>
+      </div>
+      <!-- 列表模式 -->
+      <div v-else>
+        <div v-for="product in sellingProducts" :key="product.id" class="product-list-item">
+          <img v-if="product.imageBase64" :src="product.imageBase64" class="product-list-item__thumb" />
+          <div v-else class="product-list-item__thumb" style="display:flex;align-items:center;justify-content:center;color:var(--color-text-hint)"><IconImage :size="24" /></div>
+          <div class="product-list-item__info">
+            <div class="product-list-item__name">{{ product.name }}</div>
+            <div class="product-list-item__meta">💰 ¥{{ product.sellingPrice }} · 库存 {{ getStock(product.id) }}</div>
+          </div>
+          <div class="product-list-item__actions">
+            <button class="btn btn--cute" style="font-size:11px;padding:3px 8px" @click.stop="openSell(product)">售出</button>
+            <button class="btn btn--ghost" style="font-size:11px;padding:3px 8px" @click.stop="openManage(product)">管理</button>
           </div>
         </div>
       </div>
@@ -123,6 +137,7 @@ const targetStatus = computed(() => props.sellingType === 'consignment' ? 'consi
 
 const warehouse = useWarehouseStore()
 const accounting = useAccountingStore()
+const viewMode = ref('grid')
 const showSell = ref(false)
 const showManage = ref(false)
 const showAddUnsold = ref(false)
