@@ -5,9 +5,7 @@
     <!-- 录入方框 -->
     <div class="module-box">
       <button class="list-item--card" style="width:100%;border:none;margin:0" @click="showAddMenu = true">
-        <div class="list-item__icon" style="background: var(--color-pink-gradient); color: #fff; border-radius: var(--radius-full)">
-          <IconAdd :size="22" />
-        </div>
+        <img :src="img5" class="entry-icon" alt="录入" />
         <div class="list-item__content">
           <div class="list-item__title">录入商品</div>
           <div class="list-item__subtitle">添加新商品或新分类</div>
@@ -29,7 +27,7 @@
     <!-- 商品列表方框 -->
     <div class="module-box">
       <div class="module-box__header">
-        <span class="kawaii-deco">🧸</span>
+        <img :src="img6" class="list-deco-icon" alt="" />
         商品列表
         <span v-if="activeCategory" class="cute-badge cute-badge--pink" style="margin-left:4px">
           {{ activeCategoryName }}
@@ -94,6 +92,10 @@ import CategoryForm from '../components/warehouse/CategoryForm.vue'
 import EmptyState from '../components/shared/EmptyState.vue'
 import BottomSheet from '../components/shared/BottomSheet.vue'
 import { IconAdd, IconArrowRight, IconFolder, IconTag, IconCheck } from '../icons/index.js'
+
+const BASE = import.meta.env.BASE_URL
+const img5 = `${BASE}images/5.jpg`
+const img6 = `${BASE}images/6.jpg`
 
 const store = useWarehouseStore()
 const searchQuery = ref('')
