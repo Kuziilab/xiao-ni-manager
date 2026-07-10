@@ -20,7 +20,7 @@ import Toast from './components/shared/Toast.vue'
 import { useToast } from './composables/useToast.js'
 
 const route = useRoute()
-const currentTitle = computed(() => route.meta?.title || '小妮管家')
+const currentTitle = computed(() => route.meta?.title || '堆堆的仓库')
 
 // Global toast state
 const toast = useToast()
