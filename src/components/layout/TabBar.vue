@@ -59,7 +59,7 @@ function goTo(path) {
 }
 
 .tab-bar__label {
-  font-size: 30px;
+  font-size: 20px;
   font-weight: 700;
   line-height: 1.3;
   padding: 2px 14px;

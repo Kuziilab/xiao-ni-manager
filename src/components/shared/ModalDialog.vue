@@ -6,7 +6,7 @@
           <slot />
         </div>
         <div class="modal__actions">
-          <button v-if="showCancel" @click="$emit('cancel')" style="color: var(--color-text-secondary)">
+          <button v-if="showCancel" @click="onCancel" style="color: var(--color-text-secondary)">
             {{ cancelText }}
           </button>
           <button
@@ -23,7 +23,7 @@
 </template>
 
 <script setup>
-defineProps({
+const props = defineProps({
   modelValue: { type: Boolean, default: false },
   showCancel: { type: Boolean, default: true },
   showConfirm: { type: Boolean, default: true },
@@ -32,5 +32,10 @@ defineProps({
   confirmColor: { type: String, default: 'var(--color-pink)' }
 })
 
-defineEmits(['update:modelValue', 'confirm', 'cancel'])
+const emit = defineEmits(['update:modelValue', 'confirm', 'cancel'])
+
+function onCancel() {
+  emit('cancel')
+  emit('update:modelValue', false)
+}
 </script>

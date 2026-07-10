@@ -1,43 +1,70 @@
 <template>
   <div>
-    <div v-if="sellingProducts.length === 0" style="padding:20px;text-align:center;color:var(--color-text-hint);font-size:14px">
-      🏪 暂无正在售出的商品
-    </div>
-    <div class="product-grid" style="padding-top:0">
-      <div
-        v-for="product in sellingProducts"
-        :key="product.id"
-        class="product-card"
-      >
-        <div class="product-card__image">
-          <img v-if="product.imageBase64" :src="product.imageBase64" style="width:100%;height:100%;object-fit:cover" alt="" />
-          <IconImage v-else :size="40" style="opacity:0.3; color: var(--color-text-hint)" />
-        </div>
-        <div class="product-card__body">
-          <div class="product-card__name">{{ product.name }}</div>
-          <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">
-            💰 ¥{{ product.sellingPrice }} · 库存 {{ getStock(product.id) }}
+    <!-- Today mode: show currently-selling products -->
+    <template v-if="isToday">
+      <div v-if="sellingProducts.length === 0" style="padding:20px;text-align:center;color:var(--color-text-hint);font-size:14px">
+        🏪 暂无正在售出的商品
+      </div>
+      <div class="product-grid" style="padding-top:0">
+        <div
+          v-for="product in sellingProducts"
+          :key="product.id"
+          class="product-card"
+        >
+          <div class="product-card__image">
+            <img v-if="product.imageBase64" :src="product.imageBase64" style="width:100%;height:100%;object-fit:cover" alt="" />
+            <IconImage v-else :size="40" style="opacity:0.3; color: var(--color-text-hint)" />
           </div>
-          <div style="display:flex;gap:4px;margin-top:6px">
-            <button class="btn btn--cute" style="flex:1;font-size:11px;padding:4px 0" @click.stop="openSell(product)">
-              <IconMoney :size="12" />
-              售出
-            </button>
-            <button class="btn btn--ghost" style="flex:1;font-size:11px;padding:4px 0" @click.stop="openManage(product)">
-              <IconEdit :size="12" />
-              管理
-            </button>
+          <div class="product-card__body">
+            <div class="product-card__name">{{ product.name }}</div>
+            <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">
+              💰 ¥{{ product.sellingPrice }} · 库存 {{ getStock(product.id) }}
+            </div>
+            <div style="display:flex;gap:4px;margin-top:6px">
+              <button class="btn btn--cute" style="flex:1;font-size:11px;padding:4px 0" @click.stop="openSell(product)">
+                <IconMoney :size="12" />
+                售出
+              </button>
+              <button class="btn btn--ghost" style="flex:1;font-size:11px;padding:4px 0" @click.stop="openManage(product)">
+                <IconEdit :size="12" />
+                管理
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div style="padding:8px 16px">
-      <button class="btn-icon" style="color:var(--color-pink);font-size:13px" @click="showAddUnsold = true">
-        <IconAdd :size="16" />
-        <span>添加未售出商品</span>
-      </button>
-    </div>
+      <div style="padding:8px 16px">
+        <button class="btn-icon" style="color:var(--color-pink);font-size:13px" @click="showAddUnsold = true">
+          <IconAdd :size="16" />
+          <span>添加未售出商品</span>
+        </button>
+      </div>
+    </template>
+
+    <!-- Past date mode: show sales from that day -->
+    <template v-else>
+      <div v-if="daySales.length === 0" style="padding:20px;text-align:center;color:var(--color-text-hint);font-size:14px">
+        📭 这天没有售出记录
+      </div>
+      <div v-else>
+        <div v-for="sale in daySales" :key="sale.id" class="list-item--card" style="margin:8px 12px">
+          <div class="list-item__icon" style="background:var(--color-pink-light);border-radius:var(--radius-full)">
+            <IconMoney :size="18" />
+          </div>
+          <div class="list-item__content">
+            <div class="list-item__title">{{ sale.productName }}</div>
+            <div class="list-item__subtitle">售出 {{ sale.quantity }}件</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:14px;font-weight:600">¥{{ sale.totalRevenue }}</div>
+            <div style="font-size:12px" :style="{color:sale.totalProfit>=0?'var(--color-success)':'var(--color-danger)'}">
+              利润 ¥{{ sale.totalProfit }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
 
     <SellDialog v-model="showSell" :product="sellingTarget" @confirm="handleSell" />
 
@@ -47,7 +74,6 @@
       confirmText="保存"
       @update:modelValue="showManage = $event"
       @confirm="handleManage"
-      @cancel="showManage = false"
     >
       <div style="text-align:left">
         <label class="form-label">更改状态</label>
@@ -64,7 +90,6 @@
       confirmText="添加"
       @update:modelValue="showAddUnsold = $event"
       @confirm="handleAddUnsold"
-      @cancel="showAddUnsold = false"
     >
       <div v-if="unsoldList.length === 0" style="text-align:center;color:var(--color-text-hint);padding:16px">
         没有未售出商品
@@ -86,8 +111,15 @@ import ModalDialog from '../shared/ModalDialog.vue'
 import SellDialog from './SellDialog.vue'
 import { IconImage, IconAdd, IconMoney, IconEdit } from '../../icons/index.js'
 import { useWarehouseStore } from '../../stores/warehouse.js'
+import { useAccountingStore } from '../../stores/accounting.js'
+import { today } from '../../utils/date.js'
+
+const props = defineProps({
+  date: { type: String, default: () => today() }
+})
 
 const warehouse = useWarehouseStore()
+const accounting = useAccountingStore()
 const showSell = ref(false)
 const showManage = ref(false)
 const showAddUnsold = ref(false)
@@ -96,12 +128,23 @@ const manageTarget = ref(null)
 const manageStatus = ref('unsold')
 const selectedUnsold = ref([])
 
+const isToday = computed(() => props.date === today())
+
 onMounted(async () => {
   await warehouse.init()
+  await accounting.init()
 })
 
 const sellingProducts = computed(() => warehouse.sellingProducts)
 const unsoldList = computed(() => warehouse.unsoldProducts)
+
+// Sales for a specific day
+const daySales = computed(() =>
+  accounting.sales.filter(s => {
+    const d = new Date(s.saleTime)
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` === props.date
+  })
+)
 
 function getStock(productId) {
   return warehouse.getBatchTotal(productId)

@@ -1,7 +1,7 @@
 <template>
   <div>
     <div v-if="todayGoals.length === 0" style="padding:20px;text-align:center;color:var(--color-text-hint);font-size:14px">
-      🌟 今天还没有小目标哦
+      {{ isToday ? '🌟 今天还没有小目标哦' : '📭 这天没有目标记录' }}
     </div>
     <GoalItem
       v-for="goal in todayGoals"
@@ -10,7 +10,7 @@
       @toggle="store.toggleGoal(goal.id)"
       @cancel="store.cancelGoal(goal.id)"
     />
-    <div style="padding: 8px 16px">
+    <div v-if="isToday" style="padding: 8px 16px">
       <button class="btn-icon" style="color: var(--color-pink); font-size: 13px" @click="showAdd = !showAdd">
         <IconAdd :size="16" />
         <span>添加目标</span>
@@ -35,6 +35,10 @@ import { IconAdd } from '../../icons/index.js'
 import { useNotesStore } from '../../stores/notes.js'
 import { today } from '../../utils/date.js'
 
+const props = defineProps({
+  date: { type: String, default: () => today() }
+})
+
 const store = useNotesStore()
 const showAdd = ref(false)
 const newName = ref('')
@@ -42,8 +46,10 @@ const newTime = ref('')
 const newLocation = ref('')
 
 const todayGoals = computed(() =>
-  store.goals.filter(g => g.type === 'daily' && g.date === today() && !g.cancelled)
+  store.goals.filter(g => g.type === 'daily' && g.date === props.date && !g.cancelled)
 )
+
+const isToday = computed(() => props.date === today())
 
 async function add() {
   if (!newName.value.trim()) return
@@ -52,7 +58,7 @@ async function add() {
     name: newName.value,
     time: newTime.value || null,
     location: newLocation.value || null,
-    date: today()
+    date: props.date
   })
   newName.value = ''
   newTime.value = ''
