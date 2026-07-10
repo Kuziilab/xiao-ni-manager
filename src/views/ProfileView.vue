@@ -39,8 +39,9 @@
             <span style="margin-left:4px">恢复</span>
           </button>
         </div>
-        <div v-if="storageInfo" style="text-align:center;margin-top:8px;font-size:12px;color:var(--color-text-hint)">
-          已用 {{ storageInfo.usedFormatted }} / {{ storageInfo.totalFormatted }}
+        <div v-if="storageInfo" style="text-align:center;margin-top:8px;font-size:12px;color:var(--color-text-hint);line-height:1.8">
+          📦 已用 <b style="color:var(--color-pink)">{{ storageInfo.usedFormatted }}</b> / 可用 <b>{{ storageInfo.totalFormatted }}</b>
+          <br v-if="storageInfo.isPWA" />{{ storageInfo.tip }}
         </div>
       </div>
     </div>
@@ -72,9 +73,12 @@ onMounted(async () => {
   await store.init()
   const usage = await estimateStorageUsage()
   if (usage) {
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone
     storageInfo.value = {
       usedFormatted: formatStorageSize(usage.used),
-      totalFormatted: formatStorageSize(usage.total)
+      totalFormatted: formatStorageSize(usage.total),
+      isPWA,
+      tip: isPWA ? '✅ PWA模式，存储空间充裕' : '💡 添加到主屏幕可获得更大存储空间'
     }
   }
 })
@@ -91,9 +95,12 @@ function viewDiary(entry) {
 async function onSaved() {
   const usage = await estimateStorageUsage()
   if (usage) {
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone
     storageInfo.value = {
       usedFormatted: formatStorageSize(usage.used),
-      totalFormatted: formatStorageSize(usage.total)
+      totalFormatted: formatStorageSize(usage.total),
+      isPWA,
+      tip: isPWA ? '✅ PWA模式，存储空间充裕' : '💡 添加到主屏幕可获得更大存储空间'
     }
   }
 }
