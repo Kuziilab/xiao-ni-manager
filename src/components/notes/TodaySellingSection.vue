@@ -1,18 +1,13 @@
 <template>
   <div>
     <!-- Today mode: show currently-selling products -->
-    <template v-if="true">
+    <template v-if="isToday">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 16px">
         <div v-if="sellingProducts.length" style="font-size:12px;color:var(--color-text-hint)">{{ sellingProducts.length }}件</div>
         <div v-else />
-        <span style="display:flex;align-items:center;gap:6px">
-          <button style="display:flex;align-items:center;gap:2px;font-size:12px;color:var(--color-pink);padding:2px 8px;border-radius:var(--radius-xs)" @click="openCart">
-            <IconCart :size="14" /> 批量结算
-          </button>
-          <span class="mode-toggle">
-            <button class="mode-toggle__btn" :class="{ 'mode-toggle__btn--active': viewMode === 'grid' }" @click="viewMode = 'grid'" title="大图">▦</button>
-            <button class="mode-toggle__btn" :class="{ 'mode-toggle__btn--active': viewMode === 'list' }" @click="viewMode = 'list'" title="列表">☰</button>
-          </span>
+        <span class="mode-toggle">
+          <button class="mode-toggle__btn" :class="{ 'mode-toggle__btn--active': viewMode === 'grid' }" @click="viewMode = 'grid'" title="大图">▦</button>
+          <button class="mode-toggle__btn" :class="{ 'mode-toggle__btn--active': viewMode === 'list' }" @click="viewMode = 'list'" title="列表">☰</button>
         </span>
       </div>
       <div v-if="sellingProducts.length === 0" style="padding:20px;text-align:center;color:var(--color-text-hint);font-size:14px">
@@ -119,38 +114,6 @@
       </div>
     </BottomSheet>
 
-    <!-- 购物车批量结算弹窗 -->
-    <BottomSheet v-model="showCart" title="批量结算">
-      <div v-if="sellingProducts.length === 0" style="padding:20px;text-align:center;color:var(--color-text-hint)">
-        暂无可结算商品
-      </div>
-      <div v-else style="padding:0 16px">
-        <div v-for="product in sellingProducts" :key="product.id"
-          style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--color-separator)">
-          <img v-if="product.imageBase64" :src="product.imageBase64" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0" />
-          <div v-else style="width:44px;height:44px;border-radius:6px;background:var(--color-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--color-text-hint)"><IconImage :size="20" /></div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ product.name }}</div>
-            <div style="font-size:12px;color:var(--color-text-secondary)">¥{{ product.sellingPrice }} · 库存 {{ getStock(product.id) }}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-            <button style="width:26px;height:26px;border-radius:50%;border:1px solid var(--color-separator);background:var(--color-bg);font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center" @click="cartDec(product.id)">−</button>
-            <input type="number" min="0" :max="getStock(product.id)" :value="cartQtys[product.id] || 0"
-              @input="cartSet(product.id, $event.target.value)"
-              style="width:44px;height:26px;text-align:center;font-size:13px;border:1px solid var(--color-separator);border-radius:4px;background:var(--color-bg)" />
-            <button style="width:26px;height:26px;border-radius:50%;border:1px solid var(--color-separator);background:var(--color-bg);font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center" @click="cartInc(product.id)">+</button>
-          </div>
-        </div>
-      </div>
-      <div v-if="cartTotal > 0" style="position:sticky;bottom:0;background:var(--color-surface);border-top:2px solid var(--color-pink);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;margin-top:8px">
-        <div>
-          <div style="font-size:12px;color:var(--color-text-secondary)">共 {{ cartTotal }} 件</div>
-          <div style="font-size:18px;font-weight:700;color:var(--color-pink-dark)">¥{{ cartRevenue }}</div>
-        </div>
-        <button class="btn btn--cute" style="font-size:15px;padding:10px 24px" @click="cartCheckout">结算</button>
-      </div>
-    </BottomSheet>
-
     <ModalDialog
       :modelValue="showAddUnsold"
       title="添加到今日正售"
@@ -177,7 +140,7 @@ import { ref, computed, onMounted } from 'vue'
 import ModalDialog from '../shared/ModalDialog.vue'
 import BottomSheet from '../shared/BottomSheet.vue'
 import SellDialog from './SellDialog.vue'
-import { IconImage, IconAdd, IconMoney, IconEdit, IconCart } from '../../icons/index.js'
+import { IconImage, IconAdd, IconMoney, IconEdit } from '../../icons/index.js'
 import { useWarehouseStore } from '../../stores/warehouse.js'
 import { useAccountingStore } from '../../stores/accounting.js'
 import { today } from '../../utils/date.js'
@@ -205,34 +168,6 @@ const splitQty = ref(1)
 const splitCost = ref(0)
 const splitPrice = ref(0)
 const selectedUnsold = ref([])
-
-// 购物车
-const showCart = ref(false)
-const cartQtys = reactive({})
-const cartTotal = computed(() => Object.values(cartQtys).reduce((s, v) => s + (Number(v) || 0), 0))
-const cartRevenue = computed(() => sellingProducts.value.reduce((s, p) => s + (p.sellingPrice * (Number(cartQtys[p.id]) || 0)), 0))
-
-function openCart() {
-  for (const k of Object.keys(cartQtys)) delete cartQtys[k]
-  showCart.value = true
-}
-function cartDec(id) { cartQtys[id] = Math.max(0, (Number(cartQtys[id]) || 0) - 1) }
-function cartInc(id) { cartQtys[id] = Math.min(getStock(id), (Number(cartQtys[id]) || 0) + 1) }
-function cartSet(id, val) { cartQtys[id] = Math.max(0, Math.min(getStock(id), parseInt(val) || 0)) }
-
-async function cartCheckout() {
-  if (cartTotal.value === 0) return
-  if (!confirm(`确认结算 ${cartTotal.value} 件商品，总计 ¥${cartRevenue.value}？`)) return
-  for (const p of sellingProducts.value) {
-    const qty = Number(cartQtys[p.id]) || 0
-    if (qty <= 0) continue
-    try { await warehouse.sellProduct(p.id, p.sellingPrice, qty) }
-    catch (err) { alert(`${p.name}: ${err.message}`) }
-  }
-  for (const k of Object.keys(cartQtys)) delete cartQtys[k]
-  showCart.value = false
-  await warehouse.init()
-}
 
 const isToday = computed(() => props.date === today())
 
