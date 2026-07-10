@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Today mode: show currently-selling products -->
-    <template v-if="isToday">
+    <template v-if="true">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 16px">
         <div v-if="sellingProducts.length" style="font-size:12px;color:var(--color-text-hint)">{{ sellingProducts.length }}件</div>
         <div v-else />
