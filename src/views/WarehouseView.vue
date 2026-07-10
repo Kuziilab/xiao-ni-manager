@@ -172,8 +172,10 @@ const showProductActions = ref(false)
 const showCategoryForm = ref(false)
 const editingProduct = ref(null)
 const selectedProduct = ref(null)
+import { useViewMode } from '../composables/useViewMode.js'
+
 const formMode = ref('edit') // 'edit' | 'new-batch'
-const viewMode = ref('grid') // 'grid' | 'list'
+const { viewMode } = useViewMode()
 
 function getStock(productId) { return store.getBatchTotal(productId) }
 function statusLabel(s) { return PRODUCT_STATUS[s]?.label || '未知' }
