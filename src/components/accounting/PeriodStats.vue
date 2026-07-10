@@ -19,10 +19,11 @@
 
     <!-- Stats grid -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px">
-      <div class="stat-card">
+      <div class="stat-card" style="cursor:pointer" @click="$emit('showDetail', activePeriod, periodLabel)">
         <div class="stat-card__icon">📦</div>
         <div class="stat-card__label">售出件数</div>
         <div class="stat-card__value">{{ summary.count }}</div>
+        <div style="font-size:10px;color:var(--color-text-hint);margin-top:2px">点击查看明细</div>
       </div>
       <div class="stat-card">
         <div class="stat-card__icon">💵</div>
@@ -75,6 +76,9 @@ const periods = [
 ]
 
 const periodLabel = computed(() => periods.find(p => p.value === activePeriod.value)?.label || '全部')
+
+const emit = defineEmits(['showDetail'])
+const periodLabel = computed(() => periods.find(p => p.value === activePeriod.value)?.label || '今日')
 
 onMounted(async () => {
   await store.init()
