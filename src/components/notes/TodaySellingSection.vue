@@ -5,16 +5,9 @@
       <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 16px">
         <div v-if="sellingProducts.length" style="font-size:12px;color:var(--color-text-hint)">{{ sellingProducts.length }}件</div>
         <div v-else />
-        <span style="display:flex;align-items:center;gap:6px">
-          <button style="font-size:18px;line-height:1;padding:2px 6px;border-radius:var(--radius-xs);transition:all 0.15s"
-            :style="cartMode ? {background:'var(--color-pink-light)',color:'var(--color-pink)'} : {color:'var(--color-text-hint)'}"
-            @click="toggleCart" title="批量结算">
-            🛒
-          </button>
-          <span class="mode-toggle">
-            <button class="mode-toggle__btn" :class="{ 'mode-toggle__btn--active': viewMode === 'grid' }" @click="viewMode = 'grid'" title="大图">▦</button>
-            <button class="mode-toggle__btn" :class="{ 'mode-toggle__btn--active': viewMode === 'list' }" @click="viewMode = 'list'" title="列表">☰</button>
-          </span>
+        <span class="mode-toggle">
+          <button class="mode-toggle__btn" :class="{ 'mode-toggle__btn--active': viewMode === 'grid' }" @click="viewMode = 'grid'" title="大图">▦</button>
+          <button class="mode-toggle__btn" :class="{ 'mode-toggle__btn--active': viewMode === 'list' }" @click="viewMode = 'list'" title="列表">☰</button>
         </span>
       </div>
       <div v-if="sellingProducts.length === 0" style="padding:20px;text-align:center;color:var(--color-text-hint);font-size:14px">
@@ -30,19 +23,7 @@
           <div class="product-card__body">
             <div class="product-card__name">{{ product.name }}</div>
             <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">💰 ¥{{ product.sellingPrice }} · 库存 {{ getStock(product.id) }}</div>
-            <!-- Cart mode: quantity controls -->
-            <div v-if="cartMode" style="display:flex;align-items:center;gap:4px;margin-top:8px">
-              <button class="btn btn--ghost" style="width:28px;height:28px;padding:0;font-size:18px;line-height:1;border-radius:50%;background:var(--color-bg)"
-                @click.stop="decQty(product.id)">−</button>
-              <input class="form-input" type="number" min="0" :max="getStock(product.id)"
-                :value="cartQty[product.id] || 0"
-                @input="setQty(product.id, $event.target.value)"
-                style="width:40px;height:28px;text-align:center;font-size:13px;padding:0" />
-              <button class="btn btn--ghost" style="width:28px;height:28px;padding:0;font-size:18px;line-height:1;border-radius:50%;background:var(--color-bg)"
-                @click.stop="incQty(product.id)">+</button>
-            </div>
-            <!-- Normal mode: action buttons -->
-            <div v-else style="display:flex;gap:4px;margin-top:6px">
+            <div style="display:flex;gap:4px;margin-top:6px">
               <button class="btn btn--cute" style="flex:1;font-size:11px;padding:4px 0" @click.stop="openSell(product)">💰 售出</button>
               <button class="btn btn--ghost" style="flex:1;font-size:11px;padding:4px 0" @click.stop="openManage(product)">✎ 管理</button>
             </div>
@@ -58,26 +39,11 @@
             <div class="product-list-item__name">{{ product.name }}</div>
             <div class="product-list-item__meta">💰 ¥{{ product.sellingPrice }} · 库存 {{ getStock(product.id) }}</div>
           </div>
-          <!-- Cart mode -->
-          <div v-if="cartMode" style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-            <button class="btn btn--ghost" style="width:24px;height:24px;padding:0;font-size:14px;border-radius:50%;background:var(--color-bg)" @click.stop="decQty(product.id)">−</button>
-            <input class="form-input" type="number" min="0" :max="getStock(product.id)" :value="cartQty[product.id] || 0" @input="setQty(product.id, $event.target.value)" style="width:36px;height:24px;text-align:center;font-size:12px;padding:0" />
-            <button class="btn btn--ghost" style="width:24px;height:24px;padding:0;font-size:14px;border-radius:50%;background:var(--color-bg)" @click.stop="incQty(product.id)">+</button>
-          </div>
-          <div v-else class="product-list-item__actions">
+          <div class="product-list-item__actions">
             <button class="btn btn--cute" style="font-size:11px;padding:3px 8px" @click.stop="openSell(product)">售出</button>
             <button class="btn btn--ghost" style="font-size:11px;padding:3px 8px" @click.stop="openManage(product)">管理</button>
           </div>
         </div>
-      </div>
-
-      <!-- Cart checkout bar -->
-      <div v-if="cartMode && cartTotalItems > 0" style="position:sticky;bottom:0;background:var(--color-surface);border-top:2px solid var(--color-pink);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;z-index:10">
-        <div>
-          <div style="font-size:12px;color:var(--color-text-secondary)">共 {{ cartTotalItems }} 件</div>
-          <div style="font-size:18px;font-weight:700;color:var(--color-pink-dark)">¥{{ cartTotalAmount }}</div>
-        </div>
-        <button class="btn btn--cute" style="font-size:15px;padding:10px 24px" @click="checkout">结算</button>
       </div>
 
       <div style="padding:8px 16px">
@@ -202,53 +168,6 @@ const splitQty = ref(1)
 const splitCost = ref(0)
 const splitPrice = ref(0)
 const selectedUnsold = ref([])
-
-// Cart mode
-const cartMode = ref(false)
-const cartQty = reactive({})
-
-const cartTotalItems = computed(() =>
-  Object.values(cartQty).reduce((s, v) => s + (Number(v) || 0), 0)
-)
-const cartTotalAmount = computed(() =>
-  sellingProducts.value.reduce((sum, p) => sum + (p.sellingPrice * (Number(cartQty[p.id]) || 0)), 0)
-)
-
-function toggleCart() {
-  cartMode.value = !cartMode.value
-  if (!cartMode.value) {
-    for (const key of Object.keys(cartQty)) delete cartQty[key]
-  }
-}
-function getCartQty(productId) { return Number(cartQty[productId]) || 0 }
-function setQty(productId, val) {
-  const v = parseInt(val) || 0
-  const max = getStock(productId)
-  cartQty[productId] = Math.max(0, Math.min(v, max))
-}
-function incQty(productId) {
-  const max = getStock(productId)
-  cartQty[productId] = Math.min((Number(cartQty[productId]) || 0) + 1, max)
-}
-function decQty(productId) {
-  cartQty[productId] = Math.max((Number(cartQty[productId]) || 0) - 1, 0)
-}
-
-async function checkout() {
-  const items = sellingProducts.value.filter(p => (Number(cartQty[p.id]) || 0) > 0)
-  if (!items.length) return
-  if (!confirm(`确认结算 ${cartTotalItems.value} 件商品，总计 ¥${cartTotalAmount.value}？`)) return
-  for (const product of items) {
-    try {
-      await warehouse.sellProduct(product.id, product.sellingPrice, Number(cartQty[product.id]) || 0)
-    } catch (err) {
-      alert(`${product.name}: ${err.message}`)
-    }
-  }
-  for (const key of Object.keys(cartQty)) delete cartQty[key]
-  cartMode.value = false
-  await warehouse.init()
-}
 
 const isToday = computed(() => props.date === today())
 
