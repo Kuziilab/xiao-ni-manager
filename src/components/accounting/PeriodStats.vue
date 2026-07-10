@@ -78,7 +78,6 @@ const periods = [
 const periodLabel = computed(() => periods.find(p => p.value === activePeriod.value)?.label || '全部')
 
 const emit = defineEmits(['showDetail'])
-const periodLabel = computed(() => periods.find(p => p.value === activePeriod.value)?.label || '今日')
 
 onMounted(async () => {
   await store.init()
