@@ -258,7 +258,12 @@ onMounted(async () => {
 })
 
 const sellingProducts = computed(() =>
-  warehouse.products.filter(p => p.status === targetStatus.value)
+  warehouse.products.filter(p => {
+    const s = p.status
+    // 兼容旧数据：currently-selling 等同于 personal-selling
+    if (targetStatus.value === 'personal-selling') return s === 'personal-selling' || s === 'currently-selling'
+    return s === targetStatus.value
+  })
 )
 const unsoldList = computed(() => warehouse.unsoldProducts)
 
