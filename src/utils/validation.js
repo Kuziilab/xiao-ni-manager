@@ -42,7 +42,7 @@ export function validateProduct(form) {
   const errors = {}
   if (!form.name?.trim()) errors.name = '请输入商品名称'
   if (!form.sellingPrice || Number(form.sellingPrice) < 0) errors.sellingPrice = '请输入有效售价'
-  if (form.status && !['unsold', 'sold', 'pending-listing', 'currently-selling'].includes(form.status)) {
+  if (form.status && !['unsold', 'sold', 'pending-listing', 'personal-selling', 'consignment'].includes(form.status)) {
     errors.status = '请选择有效状态'
   }
   return Object.keys(errors).length ? errors : null
