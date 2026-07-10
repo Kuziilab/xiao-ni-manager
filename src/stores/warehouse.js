@@ -256,6 +256,45 @@ export const useWarehouseStore = defineStore('warehouse', () => {
   const consignmentProducts = computed(() => products.value.filter(p => p.status === 'consignment'))
   const allSellingProducts = computed(() => products.value.filter(p => p.status === 'personal-selling' || p.status === 'consignment'))
 
+  // 从指定商品扣减库存（FIFO顺序）
+  async function reduceProductStock(productId, quantity) {
+    const productBatches = await getProductBatches(productId)
+    let remaining = quantity
+    for (const b of productBatches) {
+      if (remaining <= 0) break
+      const consume = Math.min(b.remainingQuantity, remaining)
+      b.remainingQuantity -= consume
+      remaining -= consume
+      await dbPut('batches', b)
+    }
+    batches.value = await dbGetAll('batches')
+    return getBatchTotal(productId)
+  }
+
+  // 分裂商品：扣减原商品库存，创建新商品
+  async function splitProduct(productId, splitQty, newCost, newPrice) {
+    const product = products.value.find(p => p.id === productId)
+    if (!product) throw new Error('商品不存在')
+    const stock = getBatchTotal(productId)
+    if (splitQty > stock) throw new Error('库存不足')
+
+    await reduceProductStock(productId, splitQty)
+    await addProduct({
+      name: product.name,
+      imageBase64: product.imageBase64,
+      categoryId: product.categoryId,
+      status: product.status,
+      sellingPrice: newPrice || product.sellingPrice,
+      quantity: splitQty,
+      unitCost: newCost || 0
+    })
+
+    const newStock = getBatchTotal(productId)
+    if (newStock <= 0) {
+      await updateProduct(productId, { status: 'pending-listing' })
+    }
+  }
+
   return {
     products, categories, batches, loading,
     init,
@@ -264,6 +303,7 @@ export const useWarehouseStore = defineStore('warehouse', () => {
     addBatch, getProductBatches, getBatchTotal,
     sellProduct,
     filteredProducts,
-    unsoldProducts, sellingProducts, consignmentProducts, allSellingProducts
+    unsoldProducts, sellingProducts, consignmentProducts, allSellingProducts,
+    reduceProductStock, splitProduct
   }
 })
