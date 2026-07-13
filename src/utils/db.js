@@ -27,7 +27,9 @@ export function openDB() {
       if (currentVersion < 1) {
         createStoresV1(db)
       }
-      // 后续版本迁移在此处添加
+      if (currentVersion < 2) {
+        db.createObjectStore('supplies', { keyPath: 'id' })
+      }
     }
 
     request.onsuccess = (event) => {
