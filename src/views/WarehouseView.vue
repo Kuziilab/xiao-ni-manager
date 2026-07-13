@@ -29,6 +29,7 @@
       <div class="module-box__header">
         <img :src="img6" class="list-deco-icon" alt="" />
         商品列表
+        <button style="margin-left:8px;font-size:11px;color:var(--color-pink);padding:2px 8px;border-radius:var(--radius-xs);background:var(--color-pink-light)" @click="showStats = true">统计</button>
         <span v-if="activeCategory" class="cute-badge cute-badge--pink" style="margin-left:4px">
           {{ activeCategoryName }}
           <button style="margin-left:2px;font-size:11px;line-height:1" @click.stop="activeCategory = ''">✕</button>
@@ -137,11 +138,46 @@
         <IconCheck v-if="activeCategory===cat.id" :size="18" style="color:var(--color-pink)" />
       </button>
     </BottomSheet>
+
+    <!-- 统计弹窗 -->
+    <BottomSheet v-model="showStats" title="仓库统计">
+      <div style="padding:0 16px">
+        <div v-for="(stat, status) in store.statsByStatus" :key="status" style="padding:10px 0;border-bottom:0.5px solid var(--color-separator)">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="cute-badge" :class="'cute-badge--' + statBadgeColor(status)">{{ statusLabel(status) }}</span>
+            <span style="font-size:13px;font-weight:600">{{ stat.count }}种 · 库存{{ stat.totalStock }}件</span>
+          </div>
+          <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">总成本 ¥{{ stat.totalCost.toFixed(2) }} · 总售价 ¥{{ stat.totalSellingPrice.toFixed(2) }}</div>
+        </div>
+        <div v-if="store.supplies.length" style="padding:10px 0;border-top:2px solid var(--color-pink);margin-top:4px;font-size:13px;font-weight:600">🧷 物资总开销: ¥{{ store.suppliesTotalCost.toFixed(2) }}</div>
+      </div>
+    </BottomSheet>
+
+    <!-- 物资清单 -->
+    <div class="module-box">
+      <div class="module-box__header">🧷 物资清单 <span style="margin-left:auto;font-size:12px;color:var(--color-text-hint)">总 ¥{{ store.suppliesTotalCost.toFixed(2) }}</span></div>
+      <div class="module-box__body--no-padding">
+        <div v-if="store.supplies.length===0" style="padding:16px;text-align:center;color:var(--color-text-hint);font-size:13px">暂无物资</div>
+        <div v-for="s in store.supplies" :key="s.id" class="product-list-item">
+          <img v-if="s.imageBase64" :src="s.imageBase64" class="product-list-item__thumb" />
+          <div v-else class="product-list-item__thumb" style="display:flex;align-items:center;justify-content:center;color:var(--color-text-hint);background:var(--color-bg)">🧷</div>
+          <div class="product-list-item__info"><div class="product-list-item__name">{{ s.name }}</div><div class="product-list-item__meta">¥{{ s.unitPrice }} × {{ s.quantity }} = ¥{{ s.totalPrice }}</div></div>
+          <button style="color:var(--color-text-hint);font-size:11px" @click="store.deleteSupply(s.id)">删</button>
+        </div>
+        <div style="padding:8px 16px"><button class="btn-icon" style="color:var(--color-pink);font-size:13px" @click="showSupplyForm=!showSupplyForm"><IconAdd :size="16"/> 添加物资</button></div>
+        <div v-if="showSupplyForm" style="padding:0 16px 12px">
+          <ImagePicker :modelValue="supplyForm.imageBase64" @select="onSupplyImage" placeholder="物资图片" />
+          <input class="form-input" v-model="supplyForm.name" placeholder="物资名称" style="margin-top:8px" />
+          <div style="display:flex;gap:8px;margin-top:8px"><input class="form-input" v-model.number="supplyForm.quantity" type="number" placeholder="数量" style="flex:1" /><div class="price-input-wrapper" style="flex:1"><input class="form-input" v-model.number="supplyForm.unitPrice" type="number" step="0.01" placeholder="单价" /></div></div>
+          <button class="btn btn--cute" style="width:100%;margin-top:8px" @click="addSupply">记录物资</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useWarehouseStore } from '../stores/warehouse.js'
 import SearchBar from '../components/warehouse/SearchBar.vue'
 import StatusFilter from '../components/warehouse/StatusFilter.vue'
@@ -152,9 +188,11 @@ import ProductForm from '../components/warehouse/ProductForm.vue'
 import CategoryForm from '../components/warehouse/CategoryForm.vue'
 import EmptyState from '../components/shared/EmptyState.vue'
 import BottomSheet from '../components/shared/BottomSheet.vue'
+import ImagePicker from '../components/shared/ImagePicker.vue'
 import { IconAdd, IconArrowRight, IconFolder, IconTag, IconCheck, IconEdit, IconImage } from '../icons/index.js'
 import { PRODUCT_STATUS } from '../utils/constants.js'
 import { formatDate } from '../utils/date.js'
+import { compressImage } from '../utils/image.js'
 
 const BASE = import.meta.env.BASE_URL
 const img5 = `${BASE}images/5.jpg`
@@ -179,6 +217,21 @@ const { viewMode } = useViewMode()
 
 function getStock(productId) { return store.getBatchTotal(productId) }
 function statusLabel(s) { return PRODUCT_STATUS[s]?.label || '未知' }
+function statBadgeColor(s) { if (s==='sold') return 'green'; if (s==='pending-listing') return 'orange'; return 'pink' }
+
+// 统计
+const showStats = ref(false)
+
+// 物资
+const showSupplyForm = ref(false)
+const supplyForm = reactive({ name:'', imageBase64:'', quantity:1, unitPrice:0 })
+async function onSupplyImage(file) { const b = await compressImage(file); if (b) supplyForm.imageBase64 = b }
+async function addSupply() {
+  if (!supplyForm.name.trim()) return
+  await store.addSupply({...supplyForm})
+  supplyForm.name = ''; supplyForm.imageBase64 = ''; supplyForm.quantity = 1; supplyForm.unitPrice = 0
+  showSupplyForm.value = false
+}
 
 onMounted(async () => {
   await store.init()
