@@ -150,6 +150,12 @@
         <div style="width:36px;height:5px;border-radius:3px;background:var(--color-text-hint);margin:12px auto 16px"></div>
         <div style="text-align:center;font-size:16px;font-weight:600;margin-bottom:12px;padding:0 16px">仓库统计</div>
         <div style="padding:0 16px 20px">
+          <div v-if="!store.products.length" style="text-align:center;padding:30px;color:var(--color-text-hint);font-size:14px">
+            📦 仓库暂无商品，请先录入
+          </div>
+          <div v-else-if="!Object.keys(store.statsByStatus).length" style="text-align:center;padding:30px;color:var(--color-text-hint);font-size:14px">
+            ⏳ 加载中...
+          </div>
           <div v-for="(stat, status) in store.statsByStatus" :key="status" style="padding:10px 0;border-bottom:0.5px solid var(--color-separator)">
             <div style="display:flex;justify-content:space-between;align-items:center">
               <span class="cute-badge" :class="'cute-badge--' + statBadgeColor(status)">{{ statusLabel(status) }}</span>
