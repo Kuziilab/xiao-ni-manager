@@ -143,27 +143,16 @@
       </button>
     </BottomSheet>
 
-    <!-- 统计弹窗（本地 div，不用 teleport） -->
-    <div v-if="showStats" style="position:fixed;inset:0;z-index:999;display:flex;align-items:flex-end;justify-content:center">
-      <div style="position:absolute;inset:0;background:rgba(0,0,0,0.4)" @click="showStats=false"></div>
-      <div style="position:relative;width:100%;max-height:70vh;background:var(--color-surface);border-radius:var(--radius-lg) var(--radius-lg) 0 0;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom)">
-        <div style="width:36px;height:5px;border-radius:3px;background:var(--color-text-hint);margin:12px auto 16px"></div>
-        <div style="text-align:center;font-size:16px;font-weight:600;margin-bottom:12px;padding:0 16px">仓库统计</div>
-        <div style="padding:0 16px 20px">
-          <div v-if="!store.products.length" style="text-align:center;padding:30px;color:var(--color-text-hint);font-size:14px">
-            📦 仓库暂无商品，请先录入
-          </div>
-          <div v-else-if="!Object.keys(store.statsByStatus).length" style="text-align:center;padding:30px;color:var(--color-text-hint);font-size:14px">
-            ⏳ 加载中...
-          </div>
-          <div v-for="(stat, status) in store.statsByStatus" :key="status" style="padding:10px 0;border-bottom:0.5px solid var(--color-separator)">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <span class="cute-badge" :class="'cute-badge--' + statBadgeColor(status)">{{ statusLabel(status) }}</span>
-              <span style="font-size:13px;font-weight:600">{{ stat.count }}种 · 库存{{ stat.totalStock }}件</span>
-            </div>
-            <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">总成本 ¥{{ stat.totalCost.toFixed(2) }} · 总售价 ¥{{ stat.totalSellingPrice.toFixed(2) }}</div>
-          </div>
-          <div v-if="store.supplies.length" style="padding:10px 0;border-top:2px solid var(--color-pink);margin-top:4px;font-size:13px;font-weight:600">🧷 物资总开销: ¥{{ store.suppliesTotalCost.toFixed(2) }}</div>
+    <!-- 统计弹窗 -->
+    <div v-if="showStats" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-end">
+      <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5)" @click="showStats=false"></div>
+      <div style="position:relative;width:100%;background:#fff;border-radius:16px 16px 0 0;padding:16px 16px 30px;z-index:1">
+        <div style="width:36px;height:4px;background:#ccc;border-radius:2px;margin:0 auto 16px"></div>
+        <div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:16px">仓库统计</div>
+        <div style="text-align:center;padding:20px;color:#666" v-if="!store.products || !store.products.length">暂无商品数据</div>
+        <div v-else v-for="(stat, status) in store.statsByStatus" :key="status" style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #eee">
+          <span style="font-size:14px;font-weight:600">{{ status }}</span>
+          <span style="font-size:13px;color:#999">{{ stat.count }}件 | 成本¥{{ stat.totalCost }}</span>
         </div>
       </div>
     </div>
