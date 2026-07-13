@@ -45,6 +45,9 @@
           <span style="font-size:12px;color:var(--color-text-hint)">{{ filteredProducts.length }}件</span>
         </span>
       </div>
+      <div style="padding:4px 16px 6px;font-size:12px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-separator)">
+        成本价总共：<b style="color:var(--color-pink-dark)">¥{{ totalFilteredCost.toFixed(2) }}</b>
+      </div>
       <div class="module-box__body--no-padding">
         <!-- 网格模式 -->
         <div v-if="filteredProducts.length && viewMode === 'grid'" class="product-grid">
@@ -138,10 +141,6 @@
       </button>
     </BottomSheet>
 
-    <!-- 成本总计 -->
-    <div style="padding:8px 16px;text-align:center;font-size:13px;color:var(--color-text-secondary);background:var(--color-surface);margin:0 16px;border-radius:var(--radius-sm)">
-      成本价总共为：<b style="color:var(--color-pink-dark)">¥{{ totalFilteredCost.toFixed(2) }}</b>
-    </div>
 
     <!-- 物资清单 -->
     <div class="module-box">
