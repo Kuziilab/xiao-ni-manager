@@ -24,11 +24,6 @@
     <!-- 排序 -->
     <SortFilterBar v-model="sortOptions" @toggle="toggleSort" />
 
-    <!-- 统计按钮 -->
-    <div style="text-align:right;padding:0 16px 4px">
-      <span style="display:inline-block;font-size:12px;color:var(--color-pink);padding:6px 14px;border-radius:var(--radius-sm);background:var(--color-pink-light);cursor:pointer" @click="openStats">📊 仓库统计</span>
-    </div>
-
     <!-- 商品列表方框 -->
     <div class="module-box">
       <div class="module-box__header">
@@ -143,18 +138,9 @@
       </button>
     </BottomSheet>
 
-    <!-- 统计弹窗 -->
-    <div v-if="showStats" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-end">
-      <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5)" @click="showStats=false"></div>
-      <div style="position:relative;width:100%;background:#fff;border-radius:16px 16px 0 0;padding:16px 16px 30px;z-index:1">
-        <div style="width:36px;height:4px;background:#ccc;border-radius:2px;margin:0 auto 16px"></div>
-        <div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:16px">仓库统计</div>
-        <div style="text-align:center;padding:20px;color:#666" v-if="!store.products || !store.products.length">暂无商品数据</div>
-        <div v-else v-for="(stat, status) in store.statsByStatus" :key="status" style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #eee">
-          <span style="font-size:14px;font-weight:600">{{ status }}</span>
-          <span style="font-size:13px;color:#999">{{ stat.count }}件 | 成本¥{{ stat.totalCost }}</span>
-        </div>
-      </div>
+    <!-- 成本总计 -->
+    <div style="padding:8px 16px;text-align:center;font-size:13px;color:var(--color-text-secondary);background:var(--color-surface);margin:0 16px;border-radius:var(--radius-sm)">
+      成本价总共为：<b style="color:var(--color-pink-dark)">¥{{ totalFilteredCost.toFixed(2) }}</b>
     </div>
 
     <!-- 物资清单 -->
@@ -228,11 +214,14 @@ function getAvgCost(productId) {
   return stock > 0 ? Math.round(total / stock * 100) / 100 : 0
 }
 function statusLabel(s) { return PRODUCT_STATUS[s]?.label || '未知' }
-function statBadgeColor(s) { if (s==='sold') return 'green'; if (s==='pending-listing') return 'orange'; return 'pink' }
 
-// 统计
-const showStats = ref(false)
-function openStats() { showStats.value = true }
+// 筛选后的总成本
+const totalFilteredCost = computed(() => {
+  return filteredProducts.value.reduce((sum, p) => {
+    const bs = store.batches.filter(b => b.productId === p.id)
+    return sum + bs.reduce((s, b) => s + b.unitCost * b.remainingQuantity, 0)
+  }, 0)
+})
 
 // 物资
 const showSupplyForm = ref(false)
