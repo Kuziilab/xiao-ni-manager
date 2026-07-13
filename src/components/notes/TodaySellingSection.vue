@@ -23,7 +23,7 @@
           </div>
           <div class="product-card__body">
             <div class="product-card__name">{{ product.name }}</div>
-            <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">💰 ¥{{ product.sellingPrice }} · 库存 {{ getStock(product.id) }}</div>
+            <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">💰 ¥{{ product.sellingPrice }} · 成本¥{{ getAvgCost(product.id) }} · 库存{{ getStock(product.id) }}</div>
             <div style="display:flex;gap:4px;margin-top:6px">
               <button class="btn btn--cute" style="flex:1;font-size:11px;padding:4px 0" @click.stop="openSell(product)">💰 售出</button>
               <button class="btn btn--ghost" style="flex:1;font-size:11px;padding:4px 0" @click.stop="openManage(product)">✎ 管理</button>
@@ -38,7 +38,7 @@
           <div v-else class="product-list-item__thumb" style="display:flex;align-items:center;justify-content:center;color:var(--color-text-hint)"><IconImage :size="24" /></div>
           <div class="product-list-item__info">
             <div class="product-list-item__name">{{ product.name }}</div>
-            <div class="product-list-item__meta">💰 ¥{{ product.sellingPrice }} · 库存 {{ getStock(product.id) }}</div>
+            <div class="product-list-item__meta">💰 ¥{{ product.sellingPrice }} · 成本¥{{ getAvgCost(product.id) }} · 库存{{ getStock(product.id) }}</div>
           </div>
           <div class="product-list-item__actions">
             <button class="btn btn--cute" style="font-size:11px;padding:3px 8px" @click.stop="openSell(product)">售出</button>
@@ -248,6 +248,13 @@ const daySales = computed(() =>
 
 function getStock(productId) {
   return warehouse.getBatchTotal(productId)
+}
+function getAvgCost(productId) {
+  const bs = warehouse.batches.filter(b => b.productId === productId)
+  if (!bs.length) return 0
+  const total = bs.reduce((s, b) => s + b.unitCost * b.remainingQuantity, 0)
+  const stock = getStock(productId)
+  return stock > 0 ? Math.round(total / stock * 100) / 100 : 0
 }
 
 function openSell(product) {
