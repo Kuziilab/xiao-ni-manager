@@ -143,19 +143,24 @@
       </button>
     </BottomSheet>
 
-    <!-- 统计弹窗 -->
-    <BottomSheet v-model="showStats" title="仓库统计">
-      <div style="padding:0 16px">
-        <div v-for="(stat, status) in store.statsByStatus" :key="status" style="padding:10px 0;border-bottom:0.5px solid var(--color-separator)">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span class="cute-badge" :class="'cute-badge--' + statBadgeColor(status)">{{ statusLabel(status) }}</span>
-            <span style="font-size:13px;font-weight:600">{{ stat.count }}种 · 库存{{ stat.totalStock }}件</span>
+    <!-- 统计弹窗（本地 div，不用 teleport） -->
+    <div v-if="showStats" style="position:fixed;inset:0;z-index:999;display:flex;align-items:flex-end;justify-content:center">
+      <div style="position:absolute;inset:0;background:rgba(0,0,0,0.4)" @click="showStats=false"></div>
+      <div style="position:relative;width:100%;max-height:70vh;background:var(--color-surface);border-radius:var(--radius-lg) var(--radius-lg) 0 0;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom)">
+        <div style="width:36px;height:5px;border-radius:3px;background:var(--color-text-hint);margin:12px auto 16px"></div>
+        <div style="text-align:center;font-size:16px;font-weight:600;margin-bottom:12px;padding:0 16px">仓库统计</div>
+        <div style="padding:0 16px 20px">
+          <div v-for="(stat, status) in store.statsByStatus" :key="status" style="padding:10px 0;border-bottom:0.5px solid var(--color-separator)">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span class="cute-badge" :class="'cute-badge--' + statBadgeColor(status)">{{ statusLabel(status) }}</span>
+              <span style="font-size:13px;font-weight:600">{{ stat.count }}种 · 库存{{ stat.totalStock }}件</span>
+            </div>
+            <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">总成本 ¥{{ stat.totalCost.toFixed(2) }} · 总售价 ¥{{ stat.totalSellingPrice.toFixed(2) }}</div>
           </div>
-          <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">总成本 ¥{{ stat.totalCost.toFixed(2) }} · 总售价 ¥{{ stat.totalSellingPrice.toFixed(2) }}</div>
+          <div v-if="store.supplies.length" style="padding:10px 0;border-top:2px solid var(--color-pink);margin-top:4px;font-size:13px;font-weight:600">🧷 物资总开销: ¥{{ store.suppliesTotalCost.toFixed(2) }}</div>
         </div>
-        <div v-if="store.supplies.length" style="padding:10px 0;border-top:2px solid var(--color-pink);margin-top:4px;font-size:13px;font-weight:600">🧷 物资总开销: ¥{{ store.suppliesTotalCost.toFixed(2) }}</div>
       </div>
-    </BottomSheet>
+    </div>
 
     <!-- 物资清单 -->
     <div class="module-box">
