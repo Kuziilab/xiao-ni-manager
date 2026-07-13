@@ -30,6 +30,7 @@ export const useWarehouseStore = defineStore('warehouse', () => {
       if (migrated) products.value = await dbGetAll('products')
       categories.value = await dbGetAll('categories')
       batches.value = await dbGetAll('batches')
+      supplies.value = await dbGetAll('supplies')
     } catch (err) {
       console.error('Failed to init warehouse:', err)
     } finally {
@@ -301,12 +302,67 @@ export const useWarehouseStore = defineStore('warehouse', () => {
     }
   }
 
+  // ----- Supplies 物资清单 -----
+  const supplies = ref([])
+
+  async function addSupply(form) {
+    const item = {
+      id: generateId(),
+      name: form.name.trim(),
+      imageBase64: form.imageBase64 || '',
+      quantity: Number(form.quantity) || 0,
+      unitPrice: Number(form.unitPrice) || 0,
+      totalPrice: (Number(form.quantity) || 0) * (Number(form.unitPrice) || 0),
+      purchaseDate: Date.now(),
+      createdAt: Date.now()
+    }
+    await dbAdd('supplies', item)
+    supplies.value.unshift(item)
+    // 记入支出
+    const { useAccountingStore } = await import('./accounting.js')
+    const accounting = useAccountingStore()
+    await accounting.init()
+    await accounting.addTransaction({
+      type: 'expense',
+      categoryName: '物资采购',
+      amount: item.totalPrice,
+      description: `${item.name} ×${item.quantity}`
+    })
+    toast.showToast('物资已记录')
+    return item
+  }
+
+  async function deleteSupply(id) {
+    await dbDelete('supplies', id)
+    supplies.value = supplies.value.filter(s => s.id !== id)
+    toast.showToast('已删除')
+  }
+
+  // ----- 统计 -----
+  const statsByStatus = computed(() => {
+    const result = {}
+    for (const p of products.value) {
+      const s = p.status
+      if (!result[s]) result[s] = { count: 0, totalCost: 0, totalSellingPrice: 0, totalStock: 0 }
+      result[s].count++
+      result[s].totalSellingPrice += p.sellingPrice || 0
+      const batches = batches.value.filter(b => b.productId === p.id)
+      result[s].totalCost += batches.reduce((sum, b) => sum + b.unitCost * b.remainingQuantity, 0)
+      result[s].totalStock += batches.reduce((sum, b) => sum + b.remainingQuantity, 0)
+    }
+    return result
+  })
+
+  const suppliesTotalCost = computed(() => supplies.value.reduce((s, i) => s + i.totalPrice, 0))
+
   return {
-    products, categories, batches, loading,
+    products, categories, batches, loading, supplies,
     init,
     addCategory, deleteCategory,
     addProduct, updateProduct, deleteProduct,
     addBatch, getProductBatches, getBatchTotal,
+    addSupply, deleteSupply,
+    statsByStatus, suppliesTotalCost,
     sellProduct,
     filteredProducts,
     unsoldProducts, sellingProducts, consignmentProducts, allSellingProducts,
