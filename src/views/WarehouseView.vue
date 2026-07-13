@@ -29,7 +29,7 @@
       <div class="module-box__header">
         <img :src="img6" class="list-deco-icon" alt="" />
         商品列表
-        <button style="margin-left:8px;font-size:11px;color:var(--color-pink);padding:2px 8px;border-radius:var(--radius-xs);background:var(--color-pink-light)" @click="showStats = true">统计</button>
+        <button style="margin-left:8px;font-size:11px;color:var(--color-pink);padding:2px 8px;border-radius:var(--radius-xs);background:var(--color-pink-light)" @click.stop="showStats = true">统计</button>
         <span v-if="activeCategory" class="cute-badge cute-badge--pink" style="margin-left:4px">
           {{ activeCategoryName }}
           <button style="margin-left:2px;font-size:11px;line-height:1" @click.stop="activeCategory = ''">✕</button>
@@ -66,7 +66,7 @@
             <div class="product-list-item__info">
               <div class="product-list-item__name">{{ product.name }}</div>
               <div class="product-list-item__meta">
-                📦库存 {{ getStock(product.id) }} · <span class="cute-badge cute-badge--pink" style="font-size:10px">{{ statusLabel(product.status) }}</span>
+                成本¥{{ getAvgCost(product.id) }} · 库存{{ getStock(product.id) }}件 · <span class="cute-badge cute-badge--pink" style="font-size:10px">{{ statusLabel(product.status) }}</span>
               </div>
             </div>
             <div class="product-list-item__price">¥{{ product.sellingPrice }}</div>
@@ -216,6 +216,13 @@ const formMode = ref('edit') // 'edit' | 'new-batch'
 const { viewMode } = useViewMode()
 
 function getStock(productId) { return store.getBatchTotal(productId) }
+function getAvgCost(productId) {
+  const bs = store.batches.filter(b => b.productId === productId)
+  if (!bs.length) return 0
+  const total = bs.reduce((s, b) => s + b.unitCost * b.remainingQuantity, 0)
+  const stock = getStock(productId)
+  return stock > 0 ? Math.round(total / stock * 100) / 100 : 0
+}
 function statusLabel(s) { return PRODUCT_STATUS[s]?.label || '未知' }
 function statBadgeColor(s) { if (s==='sold') return 'green'; if (s==='pending-listing') return 'orange'; return 'pink' }
 
