@@ -33,7 +33,7 @@ export const DEFAULT_EXPENSE_CATEGORIES = ['材料', '工具', '包装', '运费
 
 // 数据库名称和版本
 export const DB_NAME = 'xiaoNiManagerDB'
-export const DB_VERSION = 1
+export const DB_VERSION = 2
 
 // 图片处理参数
 export const IMAGE_MAX_WIDTH = 800
