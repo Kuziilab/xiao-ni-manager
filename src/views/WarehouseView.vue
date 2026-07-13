@@ -24,12 +24,16 @@
     <!-- 排序 -->
     <SortFilterBar v-model="sortOptions" @toggle="toggleSort" />
 
+    <!-- 统计按钮 -->
+    <div style="text-align:right;padding:0 16px 4px">
+      <span style="display:inline-block;font-size:12px;color:var(--color-pink);padding:6px 14px;border-radius:var(--radius-sm);background:var(--color-pink-light);cursor:pointer" @click="openStats">📊 仓库统计</span>
+    </div>
+
     <!-- 商品列表方框 -->
     <div class="module-box">
       <div class="module-box__header">
         <img :src="img6" class="list-deco-icon" alt="" />
         商品列表
-        <button style="margin-left:8px;font-size:11px;color:var(--color-pink);padding:4px 10px;border-radius:var(--radius-xs);background:var(--color-pink-light);min-height:30px" @click.stop="openStats" @touchend.prevent.stop="openStats">统计</button>
         <span v-if="activeCategory" class="cute-badge cute-badge--pink" style="margin-left:4px">
           {{ activeCategoryName }}
           <button style="margin-left:2px;font-size:11px;line-height:1" @click.stop="activeCategory = ''">✕</button>
