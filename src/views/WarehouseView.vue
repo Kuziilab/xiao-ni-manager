@@ -29,7 +29,7 @@
       <div class="module-box__header">
         <img :src="img6" class="list-deco-icon" alt="" />
         商品列表
-        <button style="margin-left:8px;font-size:11px;color:var(--color-pink);padding:2px 8px;border-radius:var(--radius-xs);background:var(--color-pink-light)" @click.stop="showStats = true">统计</button>
+        <button style="margin-left:8px;font-size:11px;color:var(--color-pink);padding:4px 10px;border-radius:var(--radius-xs);background:var(--color-pink-light);min-height:30px" @click.stop="openStats" @touchend.prevent.stop="openStats">统计</button>
         <span v-if="activeCategory" class="cute-badge cute-badge--pink" style="margin-left:4px">
           {{ activeCategoryName }}
           <button style="margin-left:2px;font-size:11px;line-height:1" @click.stop="activeCategory = ''">✕</button>
@@ -228,6 +228,7 @@ function statBadgeColor(s) { if (s==='sold') return 'green'; if (s==='pending-li
 
 // 统计
 const showStats = ref(false)
+function openStats() { showStats.value = true }
 
 // 物资
 const showSupplyForm = ref(false)
